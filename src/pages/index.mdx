@@ -8,9 +8,9 @@ import ProjectGallery from '../components/ProjectGallery.astro';
 import Obfuscator from '../components/Obfuscator.astro';
 import Img from '../components/Img.astro';
 
-import { Linkedin, Github } from 'lucide-astro'
+import { Linkedin, Github, GraduationCap } from 'lucide-astro'
 
-<Heading title="Alex Gulko" subtitle="Undergraduate CS Student and Researcher at The Ohio State University">
+<Heading title="Alex Gulko" subtitle="Machine Learning Engineer at Adobe, CS Student and Researcher at The Ohio State University">
   <Img filename="alex.png" alt="Alex Gulko" width="400" loading="eager" class="padding" scales slot="left"/>
   <p slot="right">
     Email me at <Obfuscator plaintext="alex@gulko.net" iterations={2}/>
@@ -18,12 +18,13 @@ import { Linkedin, Github } from 'lucide-astro'
     <div class="horizontal">
       <a class="icon" href="https://www.linkedin.com/in/alexgulko/" title="LinkedIn" aria-label="Alex's LinkedIn link"> <Linkedin/> </a>
       <a class="icon" href="https://github.com/gulkoa/" title="GitHub" aria-label="Alex's GitHub Link"> <Github/> </a>
+      <a class="icon" href="https://scholar.google.com/citations?user=TjFrKwoAAAAJ" title="Google Scholar" aria-label="Alex's Google Scholar Link"> <GraduationCap/> </a>
     </div>
   </p>
 </Heading>
 
-## Research
-I am currently investigating Neural Data Compression with Implicit Neural Representations under the supervision of [Dr. Hanqi Guo](https://hguo.github.io/).
+{/* ## Research
+I am currently investigating Neural Data Compression with Implicit Neural Representations under the supervision of [Dr. Hanqi Guo](https://hguo.github.io/). */}
 
 ## Projects
 <ProjectGallery />
