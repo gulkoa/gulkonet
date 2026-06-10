@@ -161,7 +161,7 @@ allTags.sort();
 
 <style>
   .tag-button {
-    padding: 0.5rem 0.8rem;
+    padding: 0.5rem 0.9rem;
     margin: 0 0.2rem 0.2rem 0;
     border-radius: 20px;
     font-size: 1rem;
@@ -175,12 +175,12 @@ allTags.sort();
     transition: all 0.3s cubic-bezier(0.31, 1, 1, 1.1);
   }
   .tag-button:hover {
-    opacity: 0.8;
-    padding: 0.5rem 1rem;
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px #00000022;
   }
   .tag-button.selected {
     opacity: 1;
-    padding: 0.5rem 1.1rem;
     background-color: black;
     color: white;
   }
@@ -188,6 +188,7 @@ allTags.sort();
   .tags {
     display: flex;
     flex-wrap: wrap;
+    gap: 0.3rem;
     margin: 1rem 0;
   }
 

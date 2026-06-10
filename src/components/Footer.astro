@@ -33,6 +33,7 @@ const year = new Date().getFullYear();
     min-height: 22px;
     /* width: 100vw; */
     margin: 0;
+    padding: 0.5rem 0;
     /* margin-top: 2rem; */
 
     background-color: var(--active-color);
@@ -70,6 +71,12 @@ const year = new Date().getFullYear();
     display: flex;
     align-items: center;
     gap: 0.1rem;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+  }
+  a:hover {
+    opacity: 1;
+    text-decoration: underline;
   }
 
 

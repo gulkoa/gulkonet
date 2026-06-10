@@ -16,9 +16,12 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 <style>
   .heading {
     /* sizing */
-    /* padding: 1rem; */
     margin-bottom: 2rem;
     min-height: 500px;
+
+    /* extend the background behind the floating navbar */
+    margin-top: calc(-1 * var(--nav-clearance));
+    padding-top: var(--nav-clearance);
 
     /* nesting */
     display: flex;
@@ -29,6 +32,7 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 
   .heading h1 {
     margin: 1rem 0;
+    font-size: clamp(2.5rem, 2vw + 1.5rem, 3.25rem);
   }
 
   .heading span {

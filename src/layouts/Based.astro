@@ -43,7 +43,7 @@ const links = [
 
 		<!-- general -->
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{frontmatter.title}{frontmatter.title == "Alex Gulko" ? "" : " : Alex Gulko"}</title>
 		<meta name="description" content={frontmatter.description} />
 
@@ -112,14 +112,17 @@ const links = [
 	@font-face {
 		font-family: 'Lexend';
 		src: url('/fonts/Lexend-Light.ttf') format('truetype');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Computer Modern';
 		src: url('/fonts/computer-modern.ttf') format('truetype');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Space Mono';
 		src: url('/fonts/SpaceMono-Regular.ttf') format('truetype');
+		font-display: swap;
 	}
 
 	:root {
@@ -130,8 +133,11 @@ const links = [
 		--mono-font: 'Space Mono', monospace;
 
 		--pagefind-ui-font: var(--general-font);
-		
-		--content-margin: calc(max(50vw - 50ch, 0px));
+
+		/* keeps a comfortable gutter on narrow screens */
+		--content-margin: max(50vw - 50ch, 1.25rem);
+		/* space reserved for the floating navbar */
+		--nav-clearance: 4rem;
 	}
 
 	::backdrop {
@@ -139,14 +145,25 @@ const links = [
   }
 	html {
 		font-family: var(--general-font);
+		scroll-behavior: smooth;
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
 	}
 	body {
 		margin: 0;
 	}
+	::selection {
+		background-color: var(--active-color-transparent);
+	}
+	:focus-visible {
+		outline: 2px solid var(--active-color);
+		outline-offset: 2px;
+		border-radius: 0.25rem;
+	}
 	main {
 		/* margin: 2rem; */
 		min-height: 100vh;
-		padding: 0 var(--content-margin);
+		padding: var(--nav-clearance) var(--content-margin) 2rem;
 	}
 	section > p:not(.nodeLabel > p) {
 		font-size: 1.2rem;
@@ -177,7 +194,9 @@ const links = [
 		color: white;
 		background-color: var(--active-color);
 		border-radius: 0.5rem;
+		/* negative margin offsets the padding so surrounding text does not shift */
 		padding: 0.3rem 0.3rem;
+		margin: -0.3rem -0.3rem;
 	}
 
 	p > a:not(.pagefind-ui__result-link):active,
@@ -204,24 +223,30 @@ const links = [
 		margin-bottom: 1rem;
 	}
 	h1 {
-		font-size: 2.5rem;
+		font-size: clamp(2rem, 4vw + 1rem, 2.5rem);
 		font-weight: 500;
+		text-wrap: balance;
 	}
 	h2 {
-		font-size: 2rem;
+		font-size: clamp(1.6rem, 3vw + 0.8rem, 2rem);
 		font-weight: 500;
+		text-wrap: balance;
 	}
 	h3 {
 		font-size: 1.5rem;
 		font-weight: 500;
+		text-wrap: balance;
 	}
 
 	table, th, td {
-		border: 1px solid black;
+		border: 1px solid #d0d0d0;
 		border-collapse: collapse;
 	}
+	th {
+		background-color: #f5f5f5;
+	}
 	th, td {
-		padding: 0.2rem 0.5rem;
+		padding: 0.3rem 0.6rem;
 	}
 
 	blockquote {

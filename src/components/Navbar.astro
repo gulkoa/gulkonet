@@ -29,9 +29,11 @@ import SearchBar from './SearchBar.astro';
 <style scoped>
   nav {
     /* design */
-    background-color: #ffffff36;
+    background-color: #ffffffa8;
     backdrop-filter: blur(10px);
-    border-radius: 0.5rem;
+    border-radius: 2rem;
+    border: 1px solid #00000014;
+    box-shadow: 0 2px 12px #0000000f;
 
     /* position */
     position: fixed;
@@ -71,8 +73,24 @@ import SearchBar from './SearchBar.astro';
     position: relative;
     padding: 0.5rem 0;
   }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.2rem;
+    margin: 0 auto;
+    width: 0;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--active-color);
+    transition: width 0.25s ease-in-out;
+  }
   .nav-links a:hover {
-    /* color: #000; */
+    color: #000;
+  }
+  .nav-links a:hover::after {
+    width: 100%;
   }
 
 </style>

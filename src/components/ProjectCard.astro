@@ -81,7 +81,7 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
   .project-card {
     position: relative;
     display: flex;
-    min-width: 800px;
+    min-width: min(800px, calc(100vw - 2 * var(--content-margin)));
     height: 350px;
     border-radius: 16px;
     overflow: hidden;
@@ -93,6 +93,11 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
 
     scroll-snap-align: start;
     margin-bottom: 1rem;
+  }
+
+  .project-card:hover {
+    box-shadow: 0 10px 30px #00000021;
+    transform: translateY(-3px);
   }
 
 /* remove text decoration from everything inside project card */
@@ -172,7 +177,7 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
     font-size: 1rem;
     font-weight: 500;
     line-break: loose;
-    border: 1px solid white;
+    border: 1px solid currentColor;
   }
 
   .project-card-letters {
