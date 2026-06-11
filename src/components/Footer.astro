@@ -10,17 +10,17 @@ const year = new Date().getFullYear();
   <div class="right part">
 
     <a href="/rss.xml" title="RSS feed">
-      <Rss color="white" height="15"/>
+      <Rss height="15"/>
       RSS
     </a>
 
     <a href="https://github.com/GulkoA/gulkonet">
-      <Github color="white" height="15"/>
+      <Github height="15"/>
       Source code
     </a>
 
     <a href="/credits">
-      <AlignJustify color="white" height="15"/>
+      <AlignJustify height="15"/>
       Open source credits
     </a>
   </div>
@@ -28,16 +28,13 @@ const year = new Date().getFullYear();
 
 <style scoped>
   footer {
-    /* height: 22px; */
     height: fit-content;
-    min-height: 22px;
-    /* width: 100vw; */
     margin: 0;
-    padding: 0.5rem 0;
-    /* margin-top: 2rem; */
+    padding: 1.25rem 0;
 
-    background-color: var(--active-color);
-    color: white;
+    background-color: #fafafa;
+    border-top: 1px solid #ececec;
+    color: #777;
     font-family: var(--mono-font);
     font-size: 12px;
     font-weight: 100;
@@ -53,7 +50,7 @@ const year = new Date().getFullYear();
   @media (max-width: 800px) {
     footer {
       flex-direction: column-reverse;
-      padding: 1px;
+      gap: 0.75rem;
     }
   }
 
@@ -66,17 +63,15 @@ const year = new Date().getFullYear();
   }
 
   a {
-    color: white;
+    color: #777;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 0.1rem;
-    opacity: 0.9;
-    transition: opacity 0.2s ease;
+    gap: 0.2rem;
+    transition: color 0.2s ease;
   }
   a:hover {
-    opacity: 1;
-    text-decoration: underline;
+    color: #111;
   }
 
 

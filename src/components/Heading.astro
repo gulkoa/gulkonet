@@ -60,6 +60,22 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
     margin-left: -50px;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .heading-left,
+    .heading-right {
+      animation: fade-up 0.7s ease both;
+    }
+    .heading-right {
+      animation-delay: 0.12s;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
   @media (max-width: 800px) {
     .heading {
       flex-direction: column;

@@ -10,7 +10,7 @@ import Img from '../components/Img.astro';
 
 import { Linkedin, Github, GraduationCap } from 'lucide-astro'
 
-<Heading title="Alex Gulko" subtitle="Machine Learning Engineer at Adobe, CS Student and Researcher at The Ohio State University">
+<Heading title="Alex Gulko" titleClass="hero-name" subtitle="Machine Learning Engineer at Adobe, CS Student and Researcher at The Ohio State University">
   <Img filename="alex.png" alt="Alex Gulko" width="400" loading="eager" class="portrait" slot="left"/>
   <p slot="right">
     Email me at <Obfuscator plaintext="alex@gulko.net" iterations={2}/>
@@ -26,7 +26,7 @@ import { Linkedin, Github, GraduationCap } from 'lucide-astro'
 {/* ## Research
 I am currently investigating Neural Data Compression with Implicit Neural Representations under the supervision of [Dr. Hanqi Guo](https://hguo.github.io/). */}
 
-## Projects
+<h2 class="section-label">Projects</h2>
 <ProjectGallery />
 
 {/* # Recent blog posts */}

@@ -203,16 +203,20 @@ allTags.sort();
     margin-top: 0.5rem;
   }
   .dot {
-    border: solid 1px #353535;
-    background-color: white;
+    border: none;
+    background-color: #d6d6d6;
     border-radius: 10px;
-    height: 10px;
-    width: 10px;
+    height: 8px;
+    width: 8px;
     padding: 0;
     transition: all 0.3s ease;
   }
+  .dot:hover {
+    background-color: #a8a8a8;
+  }
   .dot.selected {
     background-color: #353535;
+    width: 24px;
   }
   
 
