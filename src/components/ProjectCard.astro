@@ -40,7 +40,7 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
 
     </div>
 
-    <span style={{textAlign: 'right'}}>Read more <ArrowUpRight style={{verticalAlign: "bottom"}} size="21"></span>
+    <span class="read-more" style={{textAlign: 'right'}}>Read more <ArrowUpRight style={{verticalAlign: "bottom"}} size="21"></span>
     <!-- <a href={href} class="card-link" style={{color: secondaryColor}}>View Project</a> -->
   </div>
   
@@ -81,11 +81,11 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
   .project-card {
     position: relative;
     display: flex;
-    min-width: 800px;
+    min-width: min(800px, calc(100vw - 2 * var(--content-margin)));
     height: 350px;
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    border: rgb(230, 230, 230) 1px solid;
+    border: rgb(236, 236, 236) 1px solid;
     padding: 0;
     z-index: 1;
 
@@ -93,6 +93,18 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
 
     scroll-snap-align: start;
     margin-bottom: 1rem;
+  }
+
+  .project-card:hover {
+    box-shadow: 0 10px 30px #00000021;
+    transform: translateY(-3px);
+  }
+
+  .read-more :global(svg) {
+    transition: transform 0.25s ease;
+  }
+  .project-card:hover .read-more :global(svg) {
+    transform: translate(3px, -3px);
   }
 
 /* remove text decoration from everything inside project card */
@@ -172,7 +184,7 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
     font-size: 1rem;
     font-weight: 500;
     line-break: loose;
-    border: 1px solid white;
+    border: 1px solid currentColor;
   }
 
   .project-card-letters {

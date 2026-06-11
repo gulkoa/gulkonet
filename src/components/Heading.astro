@@ -2,7 +2,7 @@
 const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.props;
 ---
 
-<header class="heading unmargin" style={`background-color: ${backgroundColor}`}>
+<header class:list={["heading", "unmargin", { plain: !backgroundColor }]} style={`background-color: ${backgroundColor}`}>
   <div class="heading-left">
     <slot name="left"/>
   </div>
@@ -16,9 +16,12 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 <style>
   .heading {
     /* sizing */
-    /* padding: 1rem; */
     margin-bottom: 2rem;
     min-height: 500px;
+
+    /* extend the background behind the floating navbar */
+    margin-top: calc(-1 * var(--nav-clearance));
+    padding-top: var(--nav-clearance);
 
     /* nesting */
     display: flex;
@@ -29,10 +32,18 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 
   .heading h1 {
     margin: 1rem 0;
+    font-size: clamp(2.5rem, 2vw + 1.5rem, 3.25rem);
+  }
+
+  /* soft accent wash for heroes without an explicit background color */
+  .heading.plain {
+    background: radial-gradient(ellipse 90% 70% at 50% 0%, #e9f0fd 0%, #ffffff00 70%);
   }
 
   .heading span {
     font-size: 1.2rem;
+    line-height: 1.5;
+    opacity: 0.85;
   }
 
   .heading-left {
@@ -47,6 +58,22 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
     padding: 1rem;
     width: 40vw;
     margin-left: -50px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .heading-left,
+    .heading-right {
+      animation: fade-up 0.7s ease both;
+    }
+    .heading-right {
+      animation-delay: 0.12s;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
   }
 
   @media (max-width: 800px) {

@@ -10,13 +10,17 @@ interface Props {
 
 const { links } = Astro.props;
 import SearchBar from './SearchBar.astro';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) =>
+  href === '/' ? current === '/' : current.startsWith(href);
 ---
 
 <nav>
     <ul class="nav-links">
       {links.map((link) => (
         <li>
-          <a href={link.href}>{link.label}</a>
+          <a href={link.href} class:list={{ active: isCurrent(link.href) }} aria-current={isCurrent(link.href) ? 'page' : undefined}>{link.label}</a>
         </li>
       ))}
       <li>
@@ -29,9 +33,11 @@ import SearchBar from './SearchBar.astro';
 <style scoped>
   nav {
     /* design */
-    background-color: #ffffff36;
+    background-color: #ffffffa8;
     backdrop-filter: blur(10px);
-    border-radius: 0.5rem;
+    border-radius: 2rem;
+    border: 1px solid #00000014;
+    box-shadow: 0 2px 12px #0000000f;
 
     /* position */
     position: fixed;
@@ -67,12 +73,33 @@ import SearchBar from './SearchBar.astro';
     color: #2b2b2b;
     text-decoration: none;
     font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
     transition: all 0.3s ease-in-out;
     position: relative;
     padding: 0.5rem 0;
   }
+  .nav-links a.active {
+    color: var(--active-color);
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.2rem;
+    margin: 0 auto;
+    width: 0;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--active-color);
+    transition: width 0.25s ease-in-out;
+  }
   .nav-links a:hover {
-    /* color: #000; */
+    color: #000;
+  }
+  .nav-links a:hover::after {
+    width: 100%;
   }
 
 </style>
