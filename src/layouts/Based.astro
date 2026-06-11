@@ -24,6 +24,7 @@ const addedTags = frontmatter.tags ? ", " + frontmatter.tags.join(", ") : "";
 
 const links = [
 	{ href: '/', label: 'Home' },
+	{ href: '/blog', label: 'Blog' },
 	{ href: '/resume', label: 'Resume' },
 ];
 ---
@@ -99,7 +100,7 @@ const links = [
 		<Navbar links={links}/>
 		<main style={{
 			backgroundColor: backgroundColor || "white",
-			color: secondaryColor || "black",
+			color: secondaryColor || "#1b1b1b",
 		}}>
 		<!-- <TOC headings={headings} /> -->
 			<slot />
@@ -215,7 +216,17 @@ const links = [
 	a.icon, button.icon{
 		background-color: transparent;
 		color: black;
-		padding: 0;
+		padding: 0.45rem;
+		border-radius: 50%;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+	}
+	a.icon:hover, button.icon:hover {
+		color: var(--active-color);
+		background-color: #2b66dd1a;
+		transform: translateY(-2px);
 	}
 
 	h1, h2, h3 {
@@ -250,11 +261,33 @@ const links = [
 	}
 
 	blockquote {
-		padding: 1rem 1rem;
+		margin: 1rem 0;
+		padding: 1rem 1.25rem;
 		border-left: solid 5px var(--active-color-transparent);
+		background-color: #f5f8fe;
+		border-radius: 0 0.75rem 0.75rem 0;
 	}
 	blockquote p {
 		margin: 0;
+	}
+
+	code:not(pre code) {
+		font-family: var(--mono-font);
+		font-size: 0.9em;
+		background-color: #f2f4f8;
+		padding: 0.1em 0.4em;
+		border-radius: 0.4em;
+	}
+
+	hr {
+		border: none;
+		border-top: 1px solid #e4e4e4;
+		margin: 2.5rem 0;
+	}
+
+	.portrait {
+		border-radius: 1.5rem;
+		box-shadow: 0 18px 40px #0000002b;
 	}
 
 	.font-serif {

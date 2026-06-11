@@ -161,27 +161,27 @@ allTags.sort();
 
 <style>
   .tag-button {
-    padding: 0.5rem 0.9rem;
+    padding: 0.45rem 0.9rem;
     margin: 0 0.2rem 0.2rem 0;
     border-radius: 20px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 500;
     line-break: loose;
     background-color: white;
-    color: black;
-    border: 2px solid black;
+    color: #333;
+    border: 1.5px solid #d8d8d8;
 
-    opacity: 0.7;
     transition: all 0.3s cubic-bezier(0.31, 1, 1, 1.1);
   }
   .tag-button:hover {
-    opacity: 0.9;
+    border-color: #999;
+    color: black;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px #00000022;
+    box-shadow: 0 3px 8px #00000018;
   }
   .tag-button.selected {
-    opacity: 1;
     background-color: black;
+    border-color: black;
     color: white;
   }
 

@@ -2,7 +2,7 @@
 const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.props;
 ---
 
-<header class="heading unmargin" style={`background-color: ${backgroundColor}`}>
+<header class:list={["heading", "unmargin", { plain: !backgroundColor }]} style={`background-color: ${backgroundColor}`}>
   <div class="heading-left">
     <slot name="left"/>
   </div>
@@ -35,8 +35,15 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
     font-size: clamp(2.5rem, 2vw + 1.5rem, 3.25rem);
   }
 
+  /* soft accent wash for heroes without an explicit background color */
+  .heading.plain {
+    background: radial-gradient(ellipse 90% 70% at 50% 0%, #e9f0fd 0%, #ffffff00 70%);
+  }
+
   .heading span {
     font-size: 1.2rem;
+    line-height: 1.5;
+    opacity: 0.85;
   }
 
   .heading-left {
