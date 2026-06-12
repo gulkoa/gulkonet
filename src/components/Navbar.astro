@@ -10,28 +10,35 @@ interface Props {
 
 const { links } = Astro.props;
 import SearchBar from './SearchBar.astro';
+
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname.startsWith(href);
 ---
 
 <nav>
     <ul class="nav-links">
       {links.map((link) => (
         <li>
-          <a href={link.href}>{link.label}</a>
+          <a href={link.href} class:list={[{ active: isActive(link.href) }]} aria-current={isActive(link.href) ? 'page' : undefined}>{link.label}</a>
         </li>
       ))}
       <li>
         <SearchBar />
       </li>
     </ul>
-    
+
 </nav>
 
 <style scoped>
   nav {
     /* design */
-    background-color: #ffffff36;
-    backdrop-filter: blur(10px);
-    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    box-shadow: var(--shadow-sm);
 
     /* position */
     position: fixed;
@@ -41,11 +48,9 @@ import SearchBar from './SearchBar.astro';
     z-index: 1000;
 
     /* sizing */
-    padding: 0.5rem;
+    padding: 0.4rem 0.75rem;
     width: fit-content;
-    margin: 0.5rem auto;
-
-    /* nesting */
+    margin: 0.75rem auto;
   }
 
   .nav-links {
@@ -60,19 +65,40 @@ import SearchBar from './SearchBar.astro';
   }
 
   .nav-links li {
-    margin: 0 1rem;
+    margin: 0 0.35rem;
+    display: flex;
+    align-items: center;
   }
 
   .nav-links a {
-    color: #2b2b2b;
+    color: var(--ink);
     text-decoration: none;
+    font-size: 0.95rem;
     font-weight: 500;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.2s ease-in-out;
     position: relative;
-    padding: 0.5rem 0;
+    padding: 0.35rem 0.7rem;
+    border-radius: 100px;
   }
   .nav-links a:hover {
-    /* color: #000; */
+    background-color: var(--accent-soft);
+    color: var(--active-color);
+  }
+  .nav-links a.active {
+    background-color: var(--active-color);
+    color: white;
   }
 
+  @media (max-width: 480px) {
+    nav {
+      padding: 0.3rem 0.4rem;
+    }
+    .nav-links li {
+      margin: 0 0.1rem;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      padding: 0.35rem 0.5rem;
+    }
+  }
 </style>

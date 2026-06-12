@@ -4,77 +4,91 @@ const year = new Date().getFullYear();
 ---
 
 <footer>
-  <div class="left part">
-    <p>MIT License © {year} Alex Gulko</p>
-  </div>
-  <div class="right part">
+  <div class="inner">
+    <div class="left part">
+      <p class="name">Alex Gulko</p>
+      <p class="license">MIT License © {year}</p>
+    </div>
+    <div class="right part">
 
-    <a href="/rss.xml" title="RSS feed">
-      <Rss color="white" height="15"/>
-      RSS
-    </a>
+      <a href="/rss.xml" title="RSS feed">
+        <Rss height="15"/>
+        RSS
+      </a>
 
-    <a href="https://github.com/GulkoA/gulkonet">
-      <Github color="white" height="15"/>
-      Source code
-    </a>
+      <a href="https://github.com/GulkoA/gulkonet">
+        <Github height="15"/>
+        Source code
+      </a>
 
-    <a href="/credits">
-      <AlignJustify color="white" height="15"/>
-      Open source credits
-    </a>
+      <a href="/credits">
+        <AlignJustify height="15"/>
+        Open source credits
+      </a>
+    </div>
   </div>
 </footer>
 
 <style scoped>
   footer {
-    /* height: 22px; */
-    height: fit-content;
-    min-height: 22px;
-    /* width: 100vw; */
     margin: 0;
-    /* margin-top: 2rem; */
-
-    background-color: var(--active-color);
-    color: white;
+    background-color: var(--ink);
+    color: #b9bac4;
     font-family: var(--mono-font);
-    font-size: 12px;
-    font-weight: 100;
+    font-size: 13px;
+  }
+
+  .inner {
+    padding: 2rem var(--content-margin);
 
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    vertical-align: baseline;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
   @media (max-width: 800px) {
-    footer {
+    .inner {
       flex-direction: column-reverse;
-      padding: 1px;
+      align-items: flex-start;
+      gap: 1.5rem;
     }
   }
 
-  footer > .part {
+  footer .part {
     display: flex;
     align-items: center;
-    vertical-align: middle;
-    padding: 0 10px;
-    gap: 1rem;
+    gap: 1.5rem;
+  }
+
+  .left.part {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .name {
+    font-family: var(--general-font);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: white;
   }
 
   a {
-    color: white;
+    color: #b9bac4;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 0.1rem;
+    gap: 0.3rem;
+    transition: color 0.2s ease;
   }
-
+  a:hover {
+    color: white;
+  }
 
   p {
     margin: 0;
-    font-size: 12px;
   }
 </style>
