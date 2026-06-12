@@ -24,6 +24,8 @@ const addedTags = frontmatter.tags ? ", " + frontmatter.tags.join(", ") : "";
 
 const links = [
 	{ href: '/', label: 'Home' },
+	{ href: '/projects', label: 'Projects' },
+	{ href: '/blog', label: 'Blog' },
 	{ href: '/resume', label: 'Resume' },
 ];
 ---
@@ -71,6 +73,14 @@ const links = [
 		href={new URL("rss.xml", Astro.site)}
 		/>
 
+		<!-- fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+		/>
+
 		<!-- Katex -->
 		<link
 			rel="stylesheet"
@@ -98,8 +108,8 @@ const links = [
 	<body>
 		<Navbar links={links}/>
 		<main style={{
-			backgroundColor: backgroundColor || "white",
-			color: secondaryColor || "black",
+			backgroundColor: backgroundColor || "transparent",
+			color: secondaryColor || "inherit",
 		}}>
 		<!-- <TOC headings={headings} /> -->
 			<slot />
@@ -110,53 +120,78 @@ const links = [
 </html>
 <style is:global>
 	@font-face {
-		font-family: 'Lexend';
+		font-family: 'Lexend Fallback';
 		src: url('/fonts/Lexend-Light.ttf') format('truetype');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Computer Modern';
 		src: url('/fonts/computer-modern.ttf') format('truetype');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Space Mono';
 		src: url('/fonts/SpaceMono-Regular.ttf') format('truetype');
+		font-display: swap;
 	}
 
 	:root {
+		--bg: #faf8f3;
+		--ink: #1d1e26;
+		--muted: #5f616e;
+		--line: #e6e2d7;
+		--card: #ffffff;
+
 		--active-color: #2b65dd;
 		--active-color-transparent: #2b66dd70;
-		--general-font: 'Lexend', sans-serif;
+		--accent-soft: #e9effc;
+
+		--general-font: 'Lexend', 'Lexend Fallback', sans-serif;
 		--serif-font: 'Computer Modern', serif;
 		--mono-font: 'Space Mono', monospace;
 
 		--pagefind-ui-font: var(--general-font);
-		
-		--content-margin: calc(max(50vw - 50ch, 0px));
+
+		--shadow-sm: 0 1px 2px rgba(29, 30, 38, 0.06), 0 2px 8px rgba(29, 30, 38, 0.04);
+		--shadow-md: 0 2px 4px rgba(29, 30, 38, 0.06), 0 12px 32px rgba(29, 30, 38, 0.1);
+
+		--content-margin: calc(max(50vw - 50ch, 1.25rem));
 	}
 
 	::backdrop {
-    backdrop-filter: blur(4px);
-  }
+		backdrop-filter: blur(4px);
+		background-color: rgba(29, 30, 38, 0.25);
+	}
+	::selection {
+		background-color: var(--active-color);
+		color: white;
+	}
 	html {
 		font-family: var(--general-font);
+		scroll-behavior: smooth;
+		scroll-padding-top: 5rem;
 	}
 	body {
 		margin: 0;
+		background-color: var(--bg);
+		color: var(--ink);
 	}
 	main {
-		/* margin: 2rem; */
 		min-height: 100vh;
 		padding: 0 var(--content-margin);
 	}
+	/* clear the fixed navbar on pages that start with a plain heading */
+	main > section:first-child > h1:first-child {
+		padding-top: 5rem;
+	}
 	section > p:not(.nodeLabel > p) {
-		font-size: 1.2rem;
+		font-size: 1.15rem;
 		margin-bottom: 1rem;
-		line-height: 1.5;
+		line-height: 1.65;
 	}
 	section {
 		margin: 1rem 0;
 		padding: 5px;
-		/* max-width: 100ch; */
 	}
 	.unmargin {
 		margin: 0 calc(var(--content-margin) * -1);
@@ -171,20 +206,34 @@ const links = [
 		color: var(--active-color);
 		text-decoration: none;
 	}
+	p > a:not(.pagefind-ui__result-link),
+	span > a {
+		text-decoration: underline;
+		text-decoration-color: var(--active-color-transparent);
+		text-decoration-thickness: 1.5px;
+		text-underline-offset: 3px;
+		border-radius: 0.4rem;
+		/* pre-allocate the hover pill so the layout doesn't shift */
+		padding: 0.15em 0.25em;
+		margin: -0.15em -0.25em;
+	}
 	p > a:not(.pagefind-ui__result-link):hover,
 	span > a:hover {
 		text-decoration: none;
 		color: white;
 		background-color: var(--active-color);
-		border-radius: 0.5rem;
-		padding: 0.3rem 0.3rem;
 	}
 
 	p > a:not(.pagefind-ui__result-link):active,
 	span > a:active {
-		box-shadow: #2b66dd6c 0px 0px 0px 0.5rem;
+		box-shadow: #2b66dd6c 0px 0px 0px 0.4rem;
 	}
 
+	:focus-visible {
+		outline: 2px solid var(--active-color);
+		outline-offset: 2px;
+		border-radius: 0.25rem;
+	}
 
 	button, a.button {
 		font-family: var(--general-font);
@@ -193,43 +242,92 @@ const links = [
 		cursor: pointer;
 	}
 
-	a.icon, button.icon{
+	a.icon, button.icon {
 		background-color: transparent;
-		color: black;
+		color: var(--ink);
 		padding: 0;
+		transition: color 0.2s ease, transform 0.2s ease;
+	}
+	a.icon:hover, button.icon:hover {
+		color: var(--active-color);
+		transform: translateY(-2px);
 	}
 
 	h1, h2, h3 {
 		margin-top: 1rem;
 		margin-bottom: 1rem;
+		line-height: 1.15;
+		text-wrap: balance;
 	}
 	h1 {
-		font-size: 2.5rem;
-		font-weight: 500;
+		font-size: clamp(2.4rem, 5vw, 3.2rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
 	}
 	h2 {
-		font-size: 2rem;
-		font-weight: 500;
+		font-size: 1.9rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
 	}
 	h3 {
-		font-size: 1.5rem;
+		font-size: 1.4rem;
 		font-weight: 500;
 	}
+	main > section > h2,
+	main > h2 {
+		margin-top: 3rem;
+	}
+	main > section > h2::after,
+	main > h2::after {
+		content: '';
+		display: block;
+		width: 2.5rem;
+		height: 3px;
+		margin-top: 0.5rem;
+		border-radius: 2px;
+		background-color: var(--active-color);
+	}
 
-	table, th, td {
-		border: 1px solid black;
+	:not(pre) > code {
+		font-family: var(--mono-font);
+		font-size: 0.85em;
+		background-color: var(--accent-soft);
+		border-radius: 0.3rem;
+		padding: 0.1em 0.35em;
+	}
+
+	table {
 		border-collapse: collapse;
+		box-shadow: var(--shadow-sm);
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
+	table, th, td {
+		border: 1px solid var(--line);
+	}
+	th {
+		background-color: var(--accent-soft);
+		font-weight: 600;
 	}
 	th, td {
-		padding: 0.2rem 0.5rem;
+		padding: 0.4rem 0.8rem;
 	}
 
 	blockquote {
-		padding: 1rem 1rem;
-		border-left: solid 5px var(--active-color-transparent);
+		margin: 1.5rem 0;
+		padding: 1rem 1.25rem;
+		border-left: solid 4px var(--active-color);
+		border-radius: 0 0.75rem 0.75rem 0;
+		background-color: var(--accent-soft);
 	}
 	blockquote p {
 		margin: 0;
+	}
+
+	hr {
+		border: none;
+		border-top: 1px solid var(--line);
+		margin: 2.5rem 0;
 	}
 
 	.font-serif {
@@ -247,13 +345,29 @@ const links = [
 		margin-right: auto;
 		width: fit-content;
 		align-items: center;
-
 	}
 
 	.horizontal {
 		display: flex;
 		flex-direction: row;
 		gap: 1rem;
+	}
+
+	figcaption {
+		color: var(--muted);
+		font-size: 0.95rem;
+		margin-top: 0.5rem;
+		text-align: center;
+	}
+
+	.hero-photo {
+		border-radius: 28px;
+		box-shadow: var(--shadow-md);
+		rotate: -2deg;
+		transition: rotate 0.3s ease;
+	}
+	.hero-photo:hover {
+		rotate: 0deg;
 	}
 
 	.language-math {

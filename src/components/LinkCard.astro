@@ -18,12 +18,21 @@ const { title, link, description } = Astro.props;
     display: block;
   }
   div {
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background-color: var(--card);
+    box-shadow: var(--shadow-sm);
     margin-bottom: 1rem;
     width: 250px;
-    color: black;
+    color: var(--ink);
+    transition: all 0.25s ease;
+  }
+  a:hover div {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--active-color-transparent);
+    color: var(--active-color);
   }
 
   .heading {

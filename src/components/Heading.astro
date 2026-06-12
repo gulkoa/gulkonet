@@ -2,7 +2,7 @@
 const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.props;
 ---
 
-<header class="heading unmargin" style={`background-color: ${backgroundColor}`}>
+<header class="heading unmargin" style={backgroundColor ? `background-color: ${backgroundColor}` : undefined}>
   <div class="heading-left">
     <slot name="left"/>
   </div>
@@ -16,9 +16,11 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 <style>
   .heading {
     /* sizing */
-    /* padding: 1rem; */
     margin-bottom: 2rem;
     min-height: 500px;
+    padding: 4rem 0 2rem;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--line);
 
     /* nesting */
     display: flex;
@@ -29,10 +31,16 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
 
   .heading h1 {
     margin: 1rem 0;
+    font-size: clamp(2.6rem, 6vw, 3.8rem);
   }
 
   .heading span {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+    line-height: 1.5;
+    display: block;
+    max-width: 34rem;
+    text-wrap: pretty;
+    opacity: 0.85;
   }
 
   .heading-left {
