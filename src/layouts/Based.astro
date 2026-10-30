@@ -6,6 +6,7 @@ import { getImage } from 'astro:assets';
 // custom
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import CursorTrail from '../components/CursorTrail.astro';
 // import TOC from '../components/TOC.astro';
 
 type Frontmatter = MarkdownLayoutProps<{
@@ -147,6 +148,7 @@ const publishedTime = createdDate && !Number.isNaN(createdDate.getTime()) ? crea
 		</main>
 
 		<Footer />
+		<CursorTrail />
 	</body>
 </html>
 <style is:global>

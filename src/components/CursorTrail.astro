@@ -1,0 +1,112 @@
+---
+// Easter egg: shake the mouse hard and a rainbow of ghost cursors trails behind it. Once it has
+// latched on, the trail follows at any speed and the text the pointer touches turns rainbow too.
+// Detection lives in src/scripts/wiggle.ts and text painting in src/scripts/paint-text.ts.
+---
+<canvas id="cursor-trail" aria-hidden="true"></canvas>
+
+<script>
+  import { WiggleDetector, sampleTrail, type WigglePoint } from '../scripts/wiggle';
+  import { paintTextAlong } from '../scripts/paint-text';
+
+  const TRAIL_MS = 1000;    // how far back in time the trail reaches
+  const SPACING = 14;       // px of path between ghost cursors
+  const MAX_GHOSTS = 48;    // cap on ghosts per frame
+  const HUE_STEP = 8;       // degrees of hue between neighbouring ghosts
+  const HUE_DRIFT = 90;     // degrees per second the whole rainbow drifts
+  const MIN_STEP = 2;       // px; closer pointer samples are merged
+  const TEXT_HUE_STEP = 9;  // degrees of hue between neighbouring painted characters
+
+  const canvas = document.getElementById('cursor-trail') as HTMLCanvasElement | null;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasHover = matchMedia('(hover: hover)').matches;
+  if (canvas && !reduceMotion && hasHover) init(canvas);
+
+  function init(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const detector = new WiggleDetector();
+    const points: WigglePoint[] = [];
+    let raf = 0;
+    let prevX = NaN;
+    let prevY = NaN;
+    let textHue = 0;
+    const nextHue = () => (textHue = (textHue + TEXT_HUE_STEP) % 360);
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    window.addEventListener('pointermove', (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      const t = performance.now();
+      detector.move(e.clientX, e.clientY, t);
+      if (detector.isLatched() && !Number.isNaN(prevX)) paintTextAlong(prevX, prevY, e.clientX, e.clientY, nextHue);
+      prevX = e.clientX;
+      prevY = e.clientY;
+      const last = points[points.length - 1];
+      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) >= MIN_STEP) {
+        points.push({ x: e.clientX, y: e.clientY, t });
+      }
+      if (!raf) raf = requestAnimationFrame(frame);
+    }, { passive: true });
+
+    function frame(now: number) {
+      raf = 0;
+      const cutoff = now - TRAIL_MS;
+      while (points.length && points[0].t < cutoff) points.shift();
+      const k = detector.intensity(now);
+      ctx!.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      if (k > 0 && points.length > 1) {
+        const ghosts = sampleTrail(points, SPACING, MAX_GHOSTS);
+        const hue0 = (now / 1000) * HUE_DRIFT;
+        const n = ghosts.length;
+        for (let i = n - 1; i >= 0; i--) { // oldest first, so the newest ghost sits on top
+          const age = n > 1 ? i / (n - 1) : 0; // 0 at the cursor, 1 at the tail
+          drawCursor(ctx!, ghosts[i].x, ghosts[i].y, hue0 + i * HUE_STEP, k * (0.95 - 0.85 * age), 1 - 0.35 * age);
+        }
+      }
+      if (k > 0 || points.length) raf = requestAnimationFrame(frame);
+    }
+  }
+
+  // A classic arrow pointer, tip at the origin, about 20px tall at scale 1.
+  function drawCursor(ctx: CanvasRenderingContext2D, x: number, y: number, hue: number, alpha: number, scale: number) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, 16.5);
+    ctx.lineTo(4.3, 12.8);
+    ctx.lineTo(7.2, 19.3);
+    ctx.lineTo(9.8, 18.2);
+    ctx.lineTo(6.9, 11.8);
+    ctx.lineTo(12.3, 11.8);
+    ctx.closePath();
+    ctx.fillStyle = `hsl(${hue} 100% 55%)`;
+    ctx.fill();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(15, 15, 25, 0.5)';
+    ctx.stroke();
+    ctx.restore();
+  }
+</script>
+
+<style>
+  #cursor-trail {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1500;
+  }
+</style>
