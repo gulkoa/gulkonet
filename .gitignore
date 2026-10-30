@@ -24,3 +24,6 @@ pnpm-debug.log*
 .idea/
 
 legacy/
+# python
+__pycache__/
+*.pyc

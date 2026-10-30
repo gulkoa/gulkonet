@@ -1,0 +1,250 @@
+---
+// A profile photo that is first traced live by a chain of Fourier epicycles
+// (one continuous line in the colour the data names, or page ink for "ink";
+// the data may carry several paths, each drawn by its own chain), then
+// crossfades into the real image.
+// Accepts exactly the props <Img> takes.
+import Img from './Img.astro';
+const props = Astro.props;
+---
+
+<div class="fourier-portrait" data-fourier-portrait>
+  <Img {...props} />
+  <canvas class="fourier-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .fourier-portrait {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+  }
+  .fourier-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .fourier-canvas.active {
+    opacity: 1;
+  }
+  .fourier-canvas.fading {
+    opacity: 0;
+    transition: opacity 1500ms ease;
+  }
+  /* The image is only ever hidden by a class the script adds; no-JS keeps the photo. */
+  .fourier-portrait :global(img.fourier-hidden) {
+    opacity: 0;
+  }
+  .fourier-portrait :global(img.fourier-revealing) {
+    opacity: 1;
+    transition: opacity 1500ms ease;
+  }
+</style>
+
+<script>
+  import raw from '../data/fourier-portrait.json';
+  import {
+    parsePaths, chainPoints, tipPoint, tracePhases, penDown, timeline, toCanvas, canvasSize, shouldAnimate,
+    circleVisible, type Point, type PathSpec,
+  } from '../lib/epicycles';
+
+  const specs = parsePaths(raw);
+  const step = 1 / raw.m;
+
+  // trail: unit-space points the pen drew; starts: indices where the pen came back down
+  // after a lift (new subpath); path: the trail in canvas space, appended to incrementally
+  type Stroke = {
+    spec: PathSpec; color: string; trail: Point[]; starts: Set<number>; lifted: boolean;
+    path: Path2D; pathLen: number;
+  };
+
+  function start(wrapper: HTMLElement) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!shouldAnimate(reduced)) return;
+
+    const img = wrapper.querySelector('img');
+    const canvas = wrapper.querySelector('canvas');
+    if (!img || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const ink = getComputedStyle(wrapper).color || 'black';
+    const strokes: Stroke[] = specs.map((spec) => ({
+      spec,
+      color: spec.color === 'ink' ? ink : spec.color,
+      trail: [tipPoint(spec.coeffs, 0)],   // the closed loop starts at phase 0
+      starts: new Set([0]),
+      lifted: !penDown(spec.lifts, 0),
+      path: new Path2D(),
+      pathLen: 0,
+    }));
+    let width = 0;
+    let height = 0;
+    let scale = 1;          // bitmap pixels per CSS pixel, fixed at the last fit()
+    let started = false;
+    let startTime = 0;      // set by the first painted frame, not by begin()
+    let lastPhase = 0;
+    let fading = false;
+    let raf = 0;
+
+    function fit(): boolean {
+      const dpr = window.devicePixelRatio || 1;
+      const size = canvasSize(img!.clientWidth, img!.clientHeight, dpr);
+      if (!size) return false;
+      width = img!.clientWidth;
+      height = img!.clientHeight;
+      scale = dpr;
+      if (canvas!.width !== size.w || canvas!.height !== size.h) {
+        canvas!.width = size.w;
+        canvas!.height = size.h;
+      }
+      return true;
+    }
+
+    function clear() {
+      ctx!.setTransform(scale, 0, 0, scale, 0, 0);
+      ctx!.clearRect(0, 0, width, height);
+    }
+
+    /** Bring the canvas-space path up to date with the trail (rebuilt from scratch after a resize). */
+    function syncPath(s: Stroke, rebuild: boolean) {
+      if (rebuild) {
+        s.path = new Path2D();
+        s.pathLen = 0;
+      }
+      for (let i = s.pathLen; i < s.trail.length; i++) {
+        const p = toCanvas(s.trail[i], width, height);
+        if (s.starts.has(i)) s.path.moveTo(p.x, p.y);
+        else s.path.lineTo(p.x, p.y);
+      }
+      s.pathLen = s.trail.length;
+    }
+
+    function drawTrail(s: Stroke) {
+      if (s.trail.length < 2) return;
+      ctx!.lineWidth = 2;
+      ctx!.lineJoin = 'round';
+      ctx!.lineCap = 'round';
+      ctx!.strokeStyle = s.color;
+      ctx!.globalAlpha = 1;
+      ctx!.stroke(s.path);
+    }
+
+    function drawChain(s: Stroke, phase: number) {
+      const coeffs = s.spec.coeffs;
+      const joints = chainPoints(coeffs, phase);
+      ctx!.lineWidth = 1;
+      ctx!.strokeStyle = s.color;
+      // circles: spinning ones between one CSS pixel and MAX_CIRCLE_FRACTION of the width
+      ctx!.globalAlpha = 0.15;
+      ctx!.beginPath();
+      for (let i = 0; i < coeffs.length; i++) {
+        if (!circleVisible(coeffs[i], width)) continue;
+        const radius = Math.hypot(coeffs[i].re, coeffs[i].im) * width;
+        const base = toCanvas(joints[i], width, height);
+        ctx!.moveTo(base.x + radius, base.y);
+        ctx!.arc(base.x, base.y, radius, 0, 2 * Math.PI);
+      }
+      ctx!.stroke();
+      // arms: every joint, so the chain always reaches the pen tip
+      ctx!.globalAlpha = 0.5;
+      ctx!.beginPath();
+      const origin = toCanvas(joints[0], width, height);
+      ctx!.moveTo(origin.x, origin.y);
+      for (let i = 1; i < joints.length; i++) {
+        const p = toCanvas(joints[i], width, height);
+        ctx!.lineTo(p.x, p.y);
+      }
+      ctx!.stroke();
+      const tip = toCanvas(joints[joints.length - 1], width, height);
+      ctx!.globalAlpha = 1;
+      ctx!.fillStyle = s.color;
+      ctx!.beginPath();
+      ctx!.arc(tip.x, tip.y, 3, 0, 2 * Math.PI);
+      ctx!.fill();
+    }
+
+    function extendTrails(toPhase: number) {
+      if (toPhase <= lastPhase) return;
+      const phases = tracePhases(lastPhase, toPhase, step);
+      for (const s of strokes) {
+        for (const p of phases) {
+          if (!penDown(s.spec.lifts, p)) {   // a jump between strokes: the tip moves, nothing is drawn
+            s.lifted = true;
+            continue;
+          }
+          if (s.lifted) {
+            s.starts.add(s.trail.length);
+            s.lifted = false;
+          }
+          s.trail.push(tipPoint(s.spec.coeffs, p));
+        }
+      }
+      lastPhase = toPhase;
+    }
+
+    function drawAll(phase: number | null, rebuildPaths = false) {
+      clear();
+      for (const s of strokes) {
+        syncPath(s, rebuildPaths);
+        drawTrail(s);
+      }
+      if (phase !== null) for (const s of strokes) drawChain(s, phase);
+    }
+
+    function finish() {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      canvas!.remove();
+      img!.classList.remove('fourier-hidden');
+    }
+
+    function frame(now: number) {
+      if (!startTime) startTime = now;   // the clock starts with the first painted frame
+      const { stage, phase } = timeline(now - startTime);
+      if (stage === 'trace') {
+        extendTrails(phase);
+        drawAll(phase);
+      } else if (stage === 'hold' || stage === 'fade') {
+        // finish the trails even if frames were skipped (hidden tab), and show them alone
+        extendTrails(1);
+        if (!fading) drawAll(null);
+        if (stage === 'fade' && !fading) {
+          fading = true;
+          canvas!.classList.add('fading');
+          img!.classList.add('fourier-revealing');
+        }
+      } else {
+        finish();
+        return;
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    function begin() {
+      if (started) return;
+      if (!fit()) return;
+      started = true;
+      img!.classList.add('fourier-hidden');
+      canvas!.classList.add('active');
+      raf = requestAnimationFrame(frame);
+    }
+
+    const observer = new ResizeObserver(() => {
+      if (!started) {
+        begin();
+        return;
+      }
+      if (fading) return;             // resizing the bitmap would wipe the fading sketch
+      if (fit()) drawAll(null, true);
+    });
+    observer.observe(wrapper);
+    img.addEventListener('load', begin, { once: true });
+    begin();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fourier-portrait]').forEach(start);
+</script>

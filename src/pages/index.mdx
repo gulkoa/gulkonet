@@ -6,12 +6,12 @@ description: 'Undergraduate CS Student and Researcher at The Ohio State Universi
 import Heading from '../components/Heading.astro';
 import ProjectGallery from '../components/ProjectGallery.astro';
 import Obfuscator from '../components/Obfuscator.astro';
-import Img from '../components/Img.astro';
+import FourierPortrait from '../components/FourierPortrait.astro';
 
 import { Linkedin, Github, GraduationCap } from 'lucide-astro'
 
 <Heading title="Alex Gulko" subtitle="Machine Learning Engineer at Adobe, CS Student and Researcher at The Ohio State University">
-  <Img filename="alex.png" alt="Alex Gulko" width="400" loading="eager" class="padding" scales slot="left"/>
+  <FourierPortrait filename="alex-campus.jpg" alt="Alex Gulko" width="400" loading="eager" class="padding" scales slot="left"/>
   <p slot="right">
     Email me at <Obfuscator plaintext="alex@gulko.net" iterations={2}/>
 
