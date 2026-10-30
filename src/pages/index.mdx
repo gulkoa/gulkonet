@@ -8,10 +8,13 @@ import ProjectGallery from '../components/ProjectGallery.astro';
 import Obfuscator from '../components/Obfuscator.astro';
 import Img from '../components/Img.astro';
 
-import { Linkedin, Github, GraduationCap } from 'lucide-astro'
+import { Linkedin, Github, GraduationCap, Twitter } from 'lucide-astro'
 
-<Heading title="Alex Gulko" subtitle="Machine Learning Engineer at Adobe, CS Student and Researcher at The Ohio State University">
-  <Img filename="alex.png" alt="Alex Gulko" width="400" loading="eager" class="padding" scales slot="left"/>
+<Heading title="Alex Gulko">
+  <p slot="subtitle">
+    ML at the <a href="https://google.com">Search Company</a>
+  </p>
+  <FourierPortrait filename="alex-campus.jpg" alt="Alex Gulko" width="400" loading="eager" class="padding" scales slot="left"/>
   <p slot="right">
     Email me at <Obfuscator plaintext="alex@gulko.net" iterations={2}/>
 
@@ -19,6 +22,7 @@ import { Linkedin, Github, GraduationCap } from 'lucide-astro'
       <a class="icon" href="https://www.linkedin.com/in/alexgulko/" title="LinkedIn" aria-label="Alex's LinkedIn link"> <Linkedin/> </a>
       <a class="icon" href="https://github.com/gulkoa/" title="GitHub" aria-label="Alex's GitHub Link"> <Github/> </a>
       <a class="icon" href="https://scholar.google.com/citations?user=TjFrKwoAAAAJ" title="Google Scholar" aria-label="Alex's Google Scholar Link"> <GraduationCap/> </a>
+      <a class="icon" href="https://x.com/alex_gulko" title="Twitter" aria-label="Alex's Twitter link"> <Twitter/> </a>
     </div>
   </p>
 </Heading>

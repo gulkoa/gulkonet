@@ -8,7 +8,7 @@ const {title, titleClass, subtitle, backgroundColor, secondaryColor} = Astro.pro
   </div>
   <div class="heading-right">
     <h1 style={{color: secondaryColor}} class={titleClass || ""}>{title}</h1>
-    <span style={{color: secondaryColor}}>{subtitle}</span>
+    <span style={{color: secondaryColor}}><slot name="subtitle" />{subtitle}</span>
     <slot name="right" />
   </div>
 </header>

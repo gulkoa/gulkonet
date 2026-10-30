@@ -4,8 +4,8 @@ import { getCollection } from 'astro:content';
 import Gallery from "./Gallery.astro";
 import ProjectCard from "./ProjectCard.astro";
 
-const pages = await getCollection('projects');
-// console.log(entries);
+// projects with `featured: false` in their frontmatter are listed on /projects but not here
+const pages = (await getCollection('projects')).filter((page: any) => page.data.featured !== false);
 
 // sort by date
 pages.sort((a: any, b: any) => {

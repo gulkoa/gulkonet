@@ -1,6 +1,7 @@
 ---
 // first party
 import type { MarkdownLayoutProps } from 'astro';
+import { getImage } from 'astro:assets';
 
 // custom
 import Navbar from '../components/Navbar.astro';
@@ -13,6 +14,7 @@ type Frontmatter = MarkdownLayoutProps<{
   created: string;
 	updated: string;
 	tags?: string[];
+	image?: string;
 }> & {
 	backgroundColor?: string;
 	secondaryColor?: string;
@@ -24,8 +26,26 @@ const addedTags = frontmatter.tags ? ", " + frontmatter.tags.join(", ") : "";
 
 const links = [
 	{ href: '/', label: 'Home' },
-	{ href: '/resume', label: 'Resume' },
+	{ href: '/blog', label: 'Blog' },
 ];
+
+// Open Graph / Twitter card: the page's own hero image, or the portrait as a fallback
+const assetImages = import.meta.glob<{ default: ImageMetadata }>('/src/assets/**/*.{jpeg,jpg,png,gif,webp}');
+const ogSource = '/src/assets/' + (frontmatter.image || 'alex.png');
+if (!assetImages[ogSource]) throw new Error(`Open Graph image "${ogSource}" is not in src/assets`);
+const ogSourceImage = (await assetImages[ogSource]()).default;
+const ogImage = await getImage({ src: ogSourceImage, width: 1200, height: 630, fit: 'cover', format: 'png' });
+const ogImageURL = new URL(ogImage.src, Astro.site).href;
+// The image service crops to 1200x630 but never enlarges, so a smaller source comes out smaller.
+const ogScale = Math.min(1, Math.max(1200 / ogSourceImage.width, 630 / ogSourceImage.height));
+const ogWidth = Math.min(1200, Math.round(ogSourceImage.width * ogScale));
+const ogHeight = Math.min(630, Math.round(ogSourceImage.height * ogScale));
+
+const pagePath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/';
+const canonicalURL = new URL(pagePath, Astro.site).href;
+
+const createdDate = frontmatter.created ? new Date(frontmatter.created) : undefined;
+const publishedTime = createdDate && !Number.isNaN(createdDate.getTime()) ? createdDate.toISOString() : undefined;
 ---
 
 <!DOCTYPE html>
@@ -46,6 +66,27 @@ const links = [
 		<meta name="viewport" content="width=device-width" />
 		<title>{frontmatter.title}{frontmatter.title == "Alex Gulko" ? "" : " : Alex Gulko"}</title>
 		<meta name="description" content={frontmatter.description} />
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Open Graph / Twitter cards -->
+		<meta property="og:type" content={publishedTime ? "article" : "website"} />
+		<meta property="og:site_name" content="Alex Gulko" />
+		<meta property="og:title" content={frontmatter.title} />
+		<meta property="og:description" content={frontmatter.description} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:image" content={ogImageURL} />
+		<meta property="og:image:width" content={String(ogWidth)} />
+		<meta property="og:image:height" content={String(ogHeight)} />
+		<meta property="og:image:alt" content={frontmatter.title} />
+		{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:creator" content="@alex_gulko" />
+		<meta name="twitter:title" content={frontmatter.title} />
+		<meta name="twitter:description" content={frontmatter.description} />
+		<meta name="twitter:image" content={ogImageURL} />
+
+		<!-- fonts -->
+		<link rel="preload" href="/fonts/Lexend-Light.woff2" as="font" type="font/woff2" crossorigin />
 
 		<!-- SSO -->
 		<link rel="sitemap" href="/sitemap-index.xml" />
@@ -111,15 +152,18 @@ const links = [
 <style is:global>
 	@font-face {
 		font-family: 'Lexend';
-		src: url('/fonts/Lexend-Light.ttf') format('truetype');
+		src: url('/fonts/Lexend-Light.woff2') format('woff2');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Computer Modern';
-		src: url('/fonts/computer-modern.ttf') format('truetype');
+		src: url('/fonts/computer-modern.woff2') format('woff2');
+		font-display: swap;
 	}
 	@font-face {
 		font-family: 'Space Mono';
-		src: url('/fonts/SpaceMono-Regular.ttf') format('truetype');
+		src: url('/fonts/SpaceMono-Regular.woff2') format('woff2');
+		font-display: swap;
 	}
 
 	:root {

@@ -13,6 +13,7 @@ const projectsCollection = defineCollection({
     tokens: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
     font: z.string().optional(),
+    featured: z.boolean().optional(), // false keeps a project off the home page gallery
   }),
 });
 
