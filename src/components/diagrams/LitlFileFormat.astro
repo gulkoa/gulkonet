@@ -46,4 +46,7 @@ import Diagram from "./Diagram.astro";
   <text x="539" y="157" class="dg-sub">litl version, compressor, its settings</text>
   <text x="825" y="140" class="dg-sub">zstd · the remaining 47,266 bytes</text>
   <text x="825" y="157" class="dg-sub">whatever your compressor returned</text>
+
+  <!-- the caption the page passes in goes on to the figure -->
+  <slot name="caption" slot="caption" />
 </Diagram>

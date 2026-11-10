@@ -48,4 +48,7 @@ import Diagram from "./Diagram.astro";
   <text x="792" y="217" class="dg-sub">reconstruction</text>
   <path d="M500,122 V192" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
   <text x="512" y="158" class="dg-sub dg-start">size</text>
+
+  <!-- the caption the page passes in goes on to the figure -->
+  <slot name="caption" slot="caption" />
 </Diagram>

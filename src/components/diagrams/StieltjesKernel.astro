@@ -79,6 +79,9 @@ const tileX = (i: number) => 196 + i * 44;
   <path d="M836,336 L948,226" class="dg-line-muted"></path>
   <text x="892" y="354" class="dg-sub">the N × N scores,</text>
   <text x="892" y="370" class="dg-sub">recomputed every sweep</text>
+
+  <!-- the caption the page passes in goes on to the figure -->
+  <slot name="caption" slot="caption" />
 </Diagram>
 
 <style is:global>

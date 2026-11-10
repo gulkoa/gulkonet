@@ -3,6 +3,7 @@
 import "./diagram.css";
 
 // Usage: <Diagram viewBox="0 0 1000 400" label="what the picture shows" caption="..."> ...svg shapes... </Diagram>
+// A component that wraps Diagram passes its own caption slot on with <slot name="caption" slot="caption" />.
 interface Props {
   viewBox: string;
   label: string; // read by screen readers instead of the drawing
@@ -12,6 +13,10 @@ interface Props {
 }
 
 const { viewBox, label, caption, minWidth = 680, maxWidth } = Astro.props;
+
+// The diagram components forward their caption slot here whether or not the page filled it,
+// so look at what the slot renders to before adding a figcaption.
+const slottedCaption = Astro.slots.has("caption") ? (await Astro.slots.render("caption")).trim() : "";
 ---
 
 <figure class="diagram">
@@ -35,5 +40,5 @@ const { viewBox, label, caption, minWidth = 680, maxWidth } = Astro.props;
     </svg>
   </div>
   {caption && <figcaption>{caption}</figcaption>}
-  {Astro.slots.has("caption") && <figcaption><slot name="caption" /></figcaption>}
+  {slottedCaption && <figcaption set:html={slottedCaption} />}
 </figure>

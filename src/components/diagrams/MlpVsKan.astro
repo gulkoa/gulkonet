@@ -62,6 +62,9 @@ const panels = [{ dx: 0, kan: false }, { dx: 500, kan: true }];
     </g>
   ))}
   <line x1="500" y1="44" x2="500" y2="226" class="mk-divider"></line>
+
+  <!-- the caption the page passes in goes on to the figure -->
+  <slot name="caption" slot="caption" />
 </Diagram>
 
 <style is:global>

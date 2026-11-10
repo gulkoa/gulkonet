@@ -83,4 +83,7 @@ const cellX = (i: number) => 516 + i * 12;
   <!-- sparsity side input -->
   <path d="M361,275 V378 H950 V214" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
   <text x="700" y="364" class="dg-sub">how sparse the autoencoder is</text>
+
+  <!-- the caption the page passes in goes on to the figure -->
+  <slot name="caption" slot="caption" />
 </Diagram>
