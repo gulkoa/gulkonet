@@ -1,0 +1,85 @@
+---
+import Diagram from "./Diagram.astro";
+
+// how strongly each SAE feature fires on each story: one feature (index 3) flips between the two takes
+const v1 = [0.1, 0.18, 0.08, 1, 0.14, 0.08, 0.24, 0.1];
+const v2 = [0.1, 0.18, 0.08, 0.08, 0.14, 0.08, 0.24, 0.1];
+const flipped = 3;
+
+const cellX = (i: number) => 516 + i * 12;
+---
+
+<Diagram
+  viewBox="0 32 1000 364"
+  label="CE-Bench pipeline: two contrastive stories about the same subject go through a frozen LLM and a sparse autoencoder; the mean feature activations of the two stories are compared to get a contrastive score and an independence score, which are combined with the autoencoder's sparsity into one interpretability score."
+>
+  <!-- stories -->
+  <text x="16" y="56" class="dg-sub dg-start">same subject, opposite takes</text>
+  <rect x="16" y="75" width="140" height="70" rx="10" class="dg-soft"></rect>
+  <text x="86" y="101" class="dg-title">Story 1</text>
+  <text x="86" y="123" class="dg-sub">breaks every rule</text>
+  <rect x="16" y="205" width="140" height="70" rx="10" class="dg-soft"></rect>
+  <text x="86" y="231" class="dg-title">Story 2</text>
+  <text x="86" y="253" class="dg-sub">follows every rule</text>
+
+  <!-- frozen model -->
+  <text x="306" y="56" class="dg-sub">both frozen</text>
+  <rect x="196" y="75" width="90" height="200" rx="10" class="dg-box"></rect>
+  <text x="241" y="175" class="dg-title">LLM</text>
+  <rect x="306" y="75" width="110" height="200" rx="10" class="dg-box"></rect>
+  <text x="361" y="165" class="dg-title">Sparse</text>
+  <text x="361" y="185" class="dg-title">autoencoder</text>
+
+  <path d="M156,110 H194" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M156,240 H194" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M286,110 H303" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <path d="M286,240 H303" class="dg-line" marker-end="url(#dg-arrow)"></path>
+
+  <!-- mean activation per feature -->
+  <text x="563" y="56" class="dg-sub">mean activation</text>
+  <text x="563" y="72" class="dg-sub">of each feature</text>
+  <path d="M416,110 H512" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M416,240 H512" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+
+  {v1.map((a, i) => (
+    <rect x={cellX(i)} y="96" width="10" height="28" rx="2" fill={i === flipped ? "var(--dg-accent)" : "var(--dg-ink)"} fill-opacity={i === flipped ? 1 : a}></rect>
+  ))}
+  <text x="563" y="143" class="dg-math">V<tspan dy="4" font-size="12">1</tspan></text>
+  {v2.map((a, i) => (
+    <rect x={cellX(i)} y="226" width="10" height="28" rx="2" fill="var(--dg-ink)" fill-opacity={a}></rect>
+  ))}
+  <text x="563" y="273" class="dg-math">V<tspan dy="4" font-size="12">2</tspan></text>
+
+  <!-- both scores read both vectors -->
+  <path d="M612,110 H646" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M612,240 H646" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M630,110 V240" class="dg-line"></path>
+  <circle cx="630" cy="110" r="3" class="dg-dot"></circle>
+  <circle cx="630" cy="240" r="3" class="dg-dot"></circle>
+
+  <rect x="648" y="75" width="170" height="70" rx="10" class="dg-box"></rect>
+  <text x="733" y="100" class="dg-title">Contrastive score</text>
+  <text x="733" y="124" class="dg-mono">max |V1 − V2|</text>
+
+  <rect x="648" y="205" width="170" height="70" rx="10" class="dg-box"></rect>
+  <text x="733" y="230" class="dg-title">Independence score</text>
+  <text x="733" y="254" class="dg-mono">max |I − I_avg|</text>
+
+  <!-- dataset-wide mean feeds independence -->
+  <rect x="506" y="298" width="116" height="50" rx="10" class="dg-soft"></rect>
+  <text x="564" y="315" class="dg-sub">mean over</text>
+  <text x="564" y="331" class="dg-sub">all stories</text>
+  <path d="M622,323 H733 V279" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="678" y="311" class="dg-mono">I_avg</text>
+
+  <!-- final score -->
+  <rect x="856" y="140" width="128" height="70" rx="10" class="dg-solid"></rect>
+  <text x="920" y="165" class="dg-title dg-on-solid">Interpretability</text>
+  <text x="920" y="186" class="dg-title dg-on-solid">score</text>
+  <path d="M818,110 H920 V136" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M818,240 H890 V214" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+
+  <!-- sparsity side input -->
+  <path d="M361,275 V378 H950 V214" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="700" y="364" class="dg-sub">how sparse the autoencoder is</text>
+</Diagram>

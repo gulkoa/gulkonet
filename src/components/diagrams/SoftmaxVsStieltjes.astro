@@ -1,0 +1,248 @@
+---
+// One attention row, normalized two ways. 64 keys, each scoring 0.25 less than the one before it.
+const n = 64;
+const step = 0.25;
+const q = 4;
+const gaps = Array.from({ length: n }, (_, j) => j * step);
+
+// softmax: p_j = exp(s_j) / sum_k exp(s_k)
+const expo = gaps.map((g) => Math.exp(-g));
+const expoSum = expo.reduce((a, b) => a + b, 0);
+const softmax = expo.map((v) => v / expoSum);
+
+// Stieltjes: p_j = (lambda - s_j)^-q, with the pole lambda chosen so the row sums to 1.
+// `a` is lambda minus the top score, found by bisection.
+const rowSum = (a: number) => gaps.reduce((acc, g) => acc + Math.pow(a + g, -q), 0);
+let lo = 1e-9, hi = 1e3;
+for (let i = 0; i < 200; i++) {
+  const mid = (lo + hi) / 2;
+  if (rowSum(mid) > 1) lo = mid; else hi = mid;
+}
+const pole = (lo + hi) / 2;
+const stieltjes = gaps.map((g) => Math.pow(pole + g, -q));
+
+// geometry
+const W = 760, H = 392;
+const x0 = 72, x1 = 560, y0 = 28, y1 = 330;
+const maxGap = 16, decades = 8;
+const sx = (g: number) => x0 + (g / maxGap) * (x1 - x0);
+const sy = (p: number) => y0 + (-Math.log10(p) / decades) * (y1 - y0);
+const line = (values: number[]) => values.map((p, j) => `${j ? "L" : "M"}${sx(gaps[j]).toFixed(1)},${sy(p).toFixed(1)}`).join(" ");
+
+const xTicks = [0, 4, 8, 12, 16];
+const yTicks = [0, 2, 4, 6, 8]; // powers of ten below 1
+
+const superscript = (e: number) => String(e).replace("-", "⁻").replace(/\d/g, (d) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[Number(d)]);
+const fmt = (p: number) => {
+  if (p >= 0.001) return p.toFixed(3);
+  const e = Math.floor(Math.log10(p));
+  return `${(p / Math.pow(10, e)).toFixed(1)} × 10${superscript(e)}`;
+};
+
+const last = n - 1;
+const tableRows = [0, 4, 8, 16, 32, 48, last];
+const points = gaps.map((g, j) => [g, softmax[j], stieltjes[j]]);
+---
+
+<figure class="diagram wchart" data-points={JSON.stringify(points)} data-geometry={JSON.stringify({ W, x0, x1, y0, y1, maxGap, decades })}>
+  <div class="diagram-scroll">
+    <div class="wchart-frame">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Attention weights for one row of ${n} keys under softmax and under Stieltjes attention with q = ${q}, on a log scale. Softmax falls in a straight line to about ${fmt(softmax[last])} for the lowest key; the Stieltjes weights bend and stay around ${fmt(stieltjes[last])}.`} xmlns="http://www.w3.org/2000/svg">
+        <!-- grid and axes -->
+        {yTicks.map((e) => (
+          <g>
+            <line x1={x0} x2={x1} y1={sy(Math.pow(10, -e))} y2={sy(Math.pow(10, -e))} class={e === decades ? "wchart-axis" : "wchart-grid"}></line>
+            <text x={x0 - 10} y={sy(Math.pow(10, -e))} class="wchart-tick dg-end">{e === 0 ? "1" : <Fragment>10<tspan dy="-5" font-size="9.5">−{e}</tspan></Fragment>}</text>
+          </g>
+        ))}
+        {xTicks.map((g) => (
+          <text x={sx(g)} y={y1 + 18} class="wchart-tick">{g}</text>
+        ))}
+        <text x={(x0 + x1) / 2} y={H - 14} class="wchart-axis-label">how far a key's score is below the best key's</text>
+        <text x={x0 - 58} y={y0 - 12} class="wchart-axis-label dg-start">attention weight, log scale</text>
+
+        <!-- the two normalizations -->
+        <path d={line(softmax)} class="wchart-line wchart-softmax"></path>
+        <path d={line(stieltjes)} class="wchart-line wchart-stieltjes"></path>
+        <circle cx={sx(gaps[last])} cy={sy(softmax[last])} r="5" class="wchart-end wchart-softmax-fill"></circle>
+        <circle cx={sx(gaps[last])} cy={sy(stieltjes[last])} r="5" class="wchart-end wchart-stieltjes-fill"></circle>
+        <text x={sx(gaps[last]) + 14} y={sy(softmax[last])} class="wchart-label dg-start">softmax</text>
+        <text x={sx(gaps[last]) + 14} y={sy(stieltjes[last])} class="wchart-label dg-start">Stieltjes, q = {q}</text>
+
+        <!-- legend, above the plot so the tooltip never covers it -->
+        <g transform={`translate(${x1 - 262}, ${y0 - 12})`}>
+          <line x1="0" x2="22" y1="0" y2="0" class="wchart-line wchart-stieltjes"></line>
+          <text x="30" y="0" class="wchart-label dg-start">Stieltjes, q = {q}</text>
+          <line x1="158" x2="180" y1="0" y2="0" class="wchart-line wchart-softmax"></line>
+          <text x="188" y="0" class="wchart-label dg-start">softmax</text>
+        </g>
+
+        <!-- hover layer -->
+        <g class="wchart-hover" visibility="hidden">
+          <line class="wchart-cross" y1={y0} y2={y1}></line>
+          <circle r="5" class="wchart-end wchart-softmax-fill" data-series="softmax"></circle>
+          <circle r="5" class="wchart-end wchart-stieltjes-fill" data-series="stieltjes"></circle>
+        </g>
+        <rect class="wchart-hit" x={x0} y={y0} width={x1 - x0} height={y1 - y0} tabindex="0" role="slider" aria-label="Read the weights at a given score gap" aria-valuemin="0" aria-valuemax={gaps[last]} aria-valuenow="0"></rect>
+      </svg>
+      <div class="wchart-tip" hidden>
+        <div class="wchart-tip-head"></div>
+        <div class="wchart-tip-row"><span class="wchart-key wchart-key-stieltjes"></span><strong data-value="stieltjes"></strong><span>Stieltjes</span></div>
+        <div class="wchart-tip-row"><span class="wchart-key wchart-key-softmax"></span><strong data-value="softmax"></strong><span>softmax</span></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>
+    The same {n} scores, each key 0.25 below the previous one, turned into weights two ways. On a log scale softmax's exponential is a straight line down. The algebraic weights bend, ending up heavier at the very top and in the far tail.
+  </figcaption>
+  <details class="wchart-table">
+    <summary>Data table</summary>
+    <table>
+      <thead><tr><th>Score gap</th><th>Softmax</th><th>Stieltjes, q = {q}</th></tr></thead>
+      <tbody>
+        {tableRows.map((j) => (
+          <tr><td>{gaps[j]}</td><td>{fmt(softmax[j])}</td><td>{fmt(stieltjes[j])}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </details>
+</figure>
+
+<script>
+  const superscript = (e: number) => String(e).replace("-", "⁻").replace(/\d/g, (d) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[Number(d)]);
+  const fmt = (p: number) => {
+    if (p >= 0.001) return p.toFixed(3);
+    const e = Math.floor(Math.log10(p));
+    return `${(p / Math.pow(10, e)).toFixed(1)} × 10${superscript(e)}`;
+  };
+
+  document.querySelectorAll<HTMLElement>(".wchart").forEach((root) => {
+    const points: number[][] = JSON.parse(root.dataset.points || "[]");
+    const { W, x0, x1, y0, y1, maxGap, decades } = JSON.parse(root.dataset.geometry || "{}");
+    const svg = root.querySelector("svg") as SVGSVGElement;
+    const frame = root.querySelector(".wchart-frame") as HTMLElement;
+    const hit = root.querySelector(".wchart-hit") as SVGRectElement;
+    const hover = root.querySelector(".wchart-hover") as SVGGElement;
+    const cross = root.querySelector(".wchart-cross") as SVGLineElement;
+    const tip = root.querySelector(".wchart-tip") as HTMLElement;
+    if (!svg || !hit || !tip || !points.length) return;
+
+    const sx = (g: number) => x0 + (g / maxGap) * (x1 - x0);
+    const sy = (p: number) => y0 + (-Math.log10(p) / decades) * (y1 - y0);
+    let index = 0;
+
+    const show = (j: number) => {
+      index = Math.max(0, Math.min(points.length - 1, j));
+      const [gap, soft, stj] = points[index];
+      const x = sx(gap);
+      cross.setAttribute("x1", String(x));
+      cross.setAttribute("x2", String(x));
+      const dots = hover.querySelectorAll("circle");
+      dots[0].setAttribute("cx", String(x));
+      dots[0].setAttribute("cy", String(sy(soft)));
+      dots[1].setAttribute("cx", String(x));
+      dots[1].setAttribute("cy", String(sy(stj)));
+      hover.setAttribute("visibility", "visible");
+
+      (tip.querySelector(".wchart-tip-head") as HTMLElement).textContent = `${gap.toFixed(2)} below the best key`;
+      (tip.querySelector('[data-value="softmax"]') as HTMLElement).textContent = fmt(soft);
+      (tip.querySelector('[data-value="stieltjes"]') as HTMLElement).textContent = fmt(stj);
+      hit.setAttribute("aria-valuenow", String(gap));
+      hit.setAttribute("aria-valuetext", `${gap.toFixed(2)} below the best key: Stieltjes ${fmt(stj)}, softmax ${fmt(soft)}`);
+
+      // place the tooltip next to the crosshair, flipping sides near the right edge
+      tip.hidden = false;
+      const scale = svg.getBoundingClientRect().width / W;
+      const left = x * scale;
+      const flip = left + tip.offsetWidth + 16 > frame.clientWidth;
+      tip.style.left = `${flip ? left - tip.offsetWidth - 12 : left + 12}px`;
+      tip.style.top = `${y0 * scale + 8}px`;
+    };
+    const hide = () => {
+      hover.setAttribute("visibility", "hidden");
+      tip.hidden = true;
+    };
+
+    hit.addEventListener("pointermove", (e) => {
+      const rect = svg.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * W;
+      const gap = ((x - x0) / (x1 - x0)) * maxGap;
+      const stepSize = points[1][0] - points[0][0];
+      show(Math.round(gap / stepSize));
+    });
+    hit.addEventListener("pointerleave", () => { if (document.activeElement !== hit) hide(); });
+    hit.addEventListener("focus", () => show(index));
+    hit.addEventListener("blur", hide);
+    hit.addEventListener("keydown", (e) => {
+      const jump = e.shiftKey ? 8 : 1;
+      if (e.key === "ArrowRight") { show(index + jump); e.preventDefault(); }
+      else if (e.key === "ArrowLeft") { show(index - jump); e.preventDefault(); }
+      else if (e.key === "Home") { show(0); e.preventDefault(); }
+      else if (e.key === "End") { show(points.length - 1); e.preventDefault(); }
+    });
+  });
+</script>
+
+<style is:global>
+  .wchart {
+    --series-stieltjes: #2b65dd;
+    --series-softmax: #eb6834;
+    --chart-grid: #e6e7ea;
+    --chart-axis: #c3c6cc;
+    --chart-muted: #6b6f76;
+  }
+  .wchart .wchart-frame {
+    position: relative;
+    min-width: 560px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .wchart svg { overflow: visible; }
+
+  .wchart .wchart-grid { stroke: var(--chart-grid); stroke-width: 1; }
+  .wchart .wchart-axis { stroke: var(--chart-axis); stroke-width: 1; }
+  .wchart .wchart-tick { font-size: 12.5px; fill: var(--chart-muted); font-variant-numeric: tabular-nums; }
+  .wchart .wchart-axis-label { font-size: 13px; fill: var(--chart-muted); }
+  .wchart .wchart-label { font-size: 13.5px; fill: var(--dg-ink); }
+
+  .wchart .wchart-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .wchart .wchart-softmax { stroke: var(--series-softmax); }
+  .wchart .wchart-stieltjes { stroke: var(--series-stieltjes); }
+  .wchart .wchart-end { stroke: white; stroke-width: 2; }
+  .wchart .wchart-softmax-fill { fill: var(--series-softmax); }
+  .wchart .wchart-stieltjes-fill { fill: var(--series-stieltjes); }
+
+  .wchart .wchart-cross { stroke: var(--chart-axis); stroke-width: 1; }
+  .wchart .wchart-hit { fill: transparent; cursor: crosshair; outline: none; }
+  .wchart .wchart-hit:focus-visible { stroke: var(--series-stieltjes); stroke-width: 1.5; }
+
+  .wchart .wchart-tip {
+    position: absolute;
+    pointer-events: none;
+    background: white;
+    border: 1px solid rgba(11, 11, 11, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.25);
+    padding: 0.5rem 0.7rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    z-index: 5;
+  }
+  .wchart .wchart-tip-head { color: var(--chart-muted); }
+  .wchart .wchart-tip-row { display: flex; align-items: center; gap: 0.45rem; }
+  .wchart .wchart-tip-row span:last-child { color: var(--chart-muted); }
+  .wchart .wchart-key { width: 14px; height: 2px; border-radius: 1px; }
+  .wchart .wchart-key-softmax { background: var(--series-softmax); }
+  .wchart .wchart-key-stieltjes { background: var(--series-stieltjes); }
+
+  .wchart .wchart-table {
+    width: fit-content;
+    margin: 0.6rem auto 0 auto;
+    font-size: 0.95rem;
+    color: var(--chart-muted);
+  }
+  .wchart .wchart-table summary { cursor: pointer; text-align: center; }
+  .wchart .wchart-table table { margin-top: 0.5rem; color: var(--dg-ink); font-variant-numeric: tabular-nums; }
+  .wchart .wchart-table td { text-align: right; }
+</style>

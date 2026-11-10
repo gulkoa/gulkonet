@@ -34,17 +34,18 @@ const blogCollection = defineCollection({
   }),
 });
 
-// one YAML file per paper in src/content/papers; listed on the home page, newest first
+// one MDX file per paper in src/content/papers: the frontmatter feeds the home page list
+// (newest first) and the body is the write-up shown on /papers/<slug>
 const papersCollection = defineCollection({
-  type: 'data',
+  type: 'content',
   schema: z.object({
     title: z.string(),
-    authors: z.array(z.string()).min(1),
+    authors: z.array(z.string()).min(1), // a trailing * marks equal contribution
     note: z.string().optional(), // shown after the authors, e.g. the advisor of a thesis
     venue: z.string(),
-    date: z.string(), // publication date, only used for sorting
+    date: z.string(), // publication date, used for sorting
     description: z.string(),
-    links: z.array(z.object({ label: z.string(), href: z.string() })).min(1), // the first one is also the title link
+    links: z.array(z.object({ label: z.string(), href: z.string() })).min(1),
   }),
 });
 

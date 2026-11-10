@@ -1,0 +1,71 @@
+---
+title: "CE-Bench: Towards a Reliable Contrastive Evaluation Benchmark of Interpretability of Sparse Autoencoders"
+authors: ["Alex Gulko*", "Yusen Peng*", "Sachin Kumar"]
+note: "* equal contribution"
+venue: "BlackboxNLP Workshop, EMNLP 2025"
+date: "2025-11-09"
+description: "Grading how interpretable a sparse autoencoder is with pairs of contrasting stories. No LLM judge needed."
+links:
+  - label: "Paper"
+    href: "https://aclanthology.org/2025.blackboxnlp-1.1/"
+  - label: "arXiv"
+    href: "https://arxiv.org/abs/2509.00691"
+  - label: "Code"
+    href: "https://github.com/Yusen-Peng/CE-Bench"
+  - label: "Dataset"
+    href: "https://huggingface.co/datasets/GulkoA/contrastive-stories-v4"
+---
+import { Github, FileText, Database } from 'lucide-astro'
+import LinkCard from '../../components/LinkCard.astro'
+import StatTiles from '../../components/StatTiles.astro'
+import CEBenchPipeline from '../../components/diagrams/CEBenchPipeline.astro'
+
+## TL;DR
+
+CE-Bench is a benchmark that tells you how interpretable a sparse autoencoder is **without asking another LLM to judge it**. Yusen Peng, Sachin Kumar, and I built it at Ohio State and published it at the BlackboxNLP workshop at EMNLP 2025. Its rankings agree with the LLM-judged SAEBench at over 70% Spearman correlation.
+
+## Problem
+
+Sparse autoencoders (SAEs) take the messy activations inside an LLM and split them into features that are supposed to mean something. The question is how to check that they do. Most benchmarks ask a second LLM to look at each feature, explain it, and grade the explanation. That is slow and expensive, and you end up trusting one black box to grade another.
+
+## Idea
+
+If a feature really means something, it should react when the meaning changes. So we built a dataset of *contrastive stories*: for each of 1,000 subjects, short stories about the same subject that take opposite sides. In one story the narrator sneaks into an art gala and breaks every rule. In the other, they show up on time and follow every single one.
+
+## How it works
+
+<CEBenchPipeline>
+  <span slot="caption">Two stories about the same subject run through a frozen LLM and the SAE we want to grade. The highlighted feature fires on the first story and stays quiet on the second, which is exactly what the contrastive score looks for. The independence score compares the pair's combined activations (I) with the average over the whole dataset.</span>
+</CEBenchPipeline>
+
+We average how much each SAE feature fires on each story and compute two scores.
+
+The **contrastive score** is the biggest gap between the two stories. Is there a feature that flips when the take flips?
+
+The **independence score** is the biggest gap between this pair and the average over the whole dataset. Is there a feature that cares about this subject in particular?
+
+Together with how sparse the SAE is, these give one interpretability score. No prompts and no judge, just arithmetic on activations.
+
+## Results
+
+<StatTiles items={[
+  { value: "70.12%", label: "ranking agreement with SAEBench using the two scores alone" },
+  { value: "77.30%", label: "agreement once the score also accounts for sparsity" },
+  { value: "0", label: "judge LLMs involved" },
+]} />
+
+We also used CE-Bench to compare SAE architectures, widths, layer types, and layer depths. The paper has the full breakdown.
+
+## See more
+
+<LinkCard title="Read the paper" link="https://aclanthology.org/2025.blackboxnlp-1.1/">
+  <FileText color="black" slot="icon"/>
+</LinkCard>
+
+<LinkCard title="Source code" link="https://github.com/Yusen-Peng/CE-Bench">
+  <Github color="black" slot="icon"/>
+</LinkCard>
+
+<LinkCard title="Dataset" link="https://huggingface.co/datasets/GulkoA/contrastive-stories-v4">
+  <Database color="black" slot="icon"/>
+</LinkCard>

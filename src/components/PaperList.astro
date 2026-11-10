@@ -18,6 +18,7 @@ const papers = (await getCollection('papers')).sort((a, b) => {
       venue={paper.data.venue}
       description={paper.data.description}
       links={paper.data.links}
+      href={"/papers/" + paper.slug}
     />
   ))}
 </div>

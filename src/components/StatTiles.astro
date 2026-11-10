@@ -1,0 +1,49 @@
+---
+// A row of headline numbers: <StatTiles items={[{ value: "4.9×", label: "less peak memory" }]} />
+interface Stat {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  items: Stat[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="stat-tiles">
+  {items.map((item) => (
+    <div class="stat-tile">
+      <span class="stat-value">{item.value}</span>
+      <span class="stat-label">{item.label}</span>
+    </div>
+  ))}
+</div>
+
+<style scoped>
+  .stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .stat-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    border: rgb(230, 230, 230) 1px solid;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+  }
+  .stat-value {
+    font-size: 2.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 1rem;
+    line-height: 1.4;
+    color: #555;
+  }
+</style>

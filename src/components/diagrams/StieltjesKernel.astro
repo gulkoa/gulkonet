@@ -1,0 +1,121 @@
+---
+import Diagram from "./Diagram.astro";
+
+const tiles = [0, 1, 2, 3, 4, 5, 6, 7];
+const tileX = (i: number) => 196 + i * 44;
+---
+
+<Diagram
+  viewBox="0 36 1000 396"
+  label="The FlashStieltjes forward kernel for one block of queries: sweep 1 goes over the key tiles to find each row's maximum score, sweeps 2 to 4 repeat the pass to run Newton steps for the pole lambda, and sweep 5 goes over the key and value tiles to accumulate the output. Only the row maximum and the pole are kept between sweeps; the N by N score matrix is never stored."
+>
+  <!-- the query block stays put -->
+  <rect x="16" y="60" width="126" height="350" rx="10" class="dg-accent"></rect>
+  <text x="79" y="205" class="dg-math" font-size="26">Q<tspan dy="6" font-size="15">i</tspan></text>
+  <text x="79" y="240" class="dg-title">query block</text>
+  <text x="79" y="262" class="dg-sub">stays on-chip for</text>
+  <text x="79" y="278" class="dg-sub">all five sweeps</text>
+
+  <!-- sweep 1: row max -->
+  <text x="196" y="72" class="dg-start"><tspan class="dg-title">Sweep 1</tspan><tspan class="dg-sub" dx="10">find each row's largest score</tspan></text>
+  {tiles.map((i) => (
+    <g>
+      <rect x={tileX(i)} y="88" width="36" height="36" rx="6" class="dg-tile dg-tile-1" style={`--i: ${i}`}></rect>
+      <text x={tileX(i) + 18} y="106" class="dg-math" font-size="15">K</text>
+    </g>
+  ))}
+  <path d="M142,106 H192" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <path d="M548,106 H598" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <rect x="600" y="88" width="120" height="36" rx="18" class="dg-box"></rect>
+  <text x="628" y="105" class="dg-math">m<tspan dy="4" font-size="12">i</tspan></text>
+  <text x="646" y="106" class="dg-sub dg-start">row max</text>
+
+  <!-- sweeps 2-4: Newton -->
+  <text x="196" y="192" class="dg-start"><tspan class="dg-title">Sweeps 2–4</tspan><tspan class="dg-sub" dx="10">three Newton steps to find the pole λ</tspan></text>
+  {tiles.map((i) => (
+    <g>
+      <rect x={tileX(i)} y="208" width="36" height="36" rx="6" class="dg-tile dg-tile-2" style={`--i: ${i}`}></rect>
+      <text x={tileX(i) + 18} y="226" class="dg-math" font-size="15">K</text>
+    </g>
+  ))}
+  <path d="M142,226 H192" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <path d="M548,226 H598" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <rect x="600" y="208" width="120" height="36" rx="18" class="dg-box"></rect>
+  <text x="628" y="225" class="dg-math">λ<tspan dy="4" font-size="12">i</tspan></text>
+  <text x="646" y="226" class="dg-sub dg-start">the pole</text>
+  <path d="M660,124 V204" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <text x="672" y="165" class="dg-sub dg-start">centers the scores</text>
+
+  <!-- sweep 5: output -->
+  <text x="196" y="312" class="dg-start"><tspan class="dg-title">Sweep 5</tspan><tspan class="dg-sub" dx="10">turn scores into weights, add up the values</tspan></text>
+  {tiles.map((i) => (
+    <g>
+      <rect x={tileX(i)} y="328" width="36" height="36" rx="6" class="dg-tile dg-tile-3" style={`--i: ${i}`}></rect>
+      <text x={tileX(i) + 18} y="346" class="dg-math" font-size="15">K</text>
+      <rect x={tileX(i)} y="372" width="36" height="36" rx="6" class="dg-tile dg-tile-3" style={`--i: ${i}`}></rect>
+      <text x={tileX(i) + 18} y="390" class="dg-math" font-size="15">V</text>
+    </g>
+  ))}
+  <path d="M142,368 H192" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <path d="M548,368 H598" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <rect x="600" y="350" width="120" height="36" rx="18" class="dg-solid"></rect>
+  <text x="628" y="367" class="dg-math dg-on-solid">O<tspan dy="4" font-size="12">i</tspan></text>
+  <text x="646" y="368" class="dg-sub dg-start dg-on-solid">output</text>
+  <path d="M660,244 V346" class="dg-line" marker-end="url(#dg-arrow)"></path>
+  <text x="672" y="295" class="dg-sub dg-start">sets the weights</text>
+
+  <!-- what is (not) kept in memory -->
+  <text x="892" y="72" class="dg-title">Kept between sweeps</text>
+  <rect x="812" y="92" width="160" height="60" rx="10" class="dg-box"></rect>
+  <text x="892" y="113" class="dg-math">m<tspan dy="4" font-size="12">i</tspan><tspan dy="-4">,  λ</tspan><tspan dy="4" font-size="12">i</tspan></text>
+  <text x="892" y="136" class="dg-sub">two numbers per row</text>
+
+  <text x="892" y="212" class="dg-title">Never stored</text>
+  <g class="dg-ghost">
+    {[0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3, 4].map((c) => (
+      <rect x={842 + c * 20} y={232 + r * 20} width="18" height="18" rx="3"></rect>
+    )))}
+  </g>
+  <path d="M836,336 L948,226" class="dg-line-muted"></path>
+  <text x="892" y="354" class="dg-sub">the N × N scores,</text>
+  <text x="892" y="370" class="dg-sub">recomputed every sweep</text>
+</Diagram>
+
+<style is:global>
+  /* K / V tiles light up in the order the kernel visits them: 5 sweeps of 1.2s each */
+  .diagram .dg-tile {
+    fill: var(--dg-accent);
+    fill-opacity: 0.12;
+    stroke: var(--dg-accent);
+    stroke-width: 1;
+    stroke-opacity: 0.5;
+    animation: 6s linear infinite;
+  }
+  .diagram .dg-tile-1 { animation-name: dg-sweep-once; animation-delay: calc(var(--i) * 0.15s); }
+  .diagram .dg-tile-2 { animation-name: dg-sweep-thrice; animation-delay: calc(1.2s + var(--i) * 0.15s); }
+  .diagram .dg-tile-3 { animation-name: dg-sweep-once; animation-delay: calc(4.8s + var(--i) * 0.15s); }
+
+  @keyframes dg-sweep-once {
+    0%, 3% { fill-opacity: 0.75; }
+    8%, 100% { fill-opacity: 0.12; }
+  }
+  @keyframes dg-sweep-thrice {
+    0%, 3% { fill-opacity: 0.75; }
+    8%, 19.9% { fill-opacity: 0.12; }
+    20%, 23% { fill-opacity: 0.75; }
+    28%, 39.9% { fill-opacity: 0.12; }
+    40%, 43% { fill-opacity: 0.75; }
+    48%, 100% { fill-opacity: 0.12; }
+  }
+
+  .diagram .dg-ghost rect {
+    fill: none;
+    stroke: var(--dg-hairline);
+    stroke-width: 1.25;
+    stroke-dasharray: 3 3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diagram .dg-tile { animation: none; }
+  }
+</style>

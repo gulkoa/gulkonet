@@ -1,0 +1,59 @@
+---
+// custom
+import Based from "./Based.astro";
+import PaperAuthors from "../components/PaperAuthors.astro";
+import PaperLinks from "../components/PaperLinks.astro";
+
+interface Props {
+  frontmatter: {
+    title: string;
+    authors: string[];
+    note?: string;
+    venue: string;
+    date: string;
+    description: string;
+    links: { label: string; href: string }[];
+  };
+}
+
+const { frontmatter } = Astro.props;
+---
+
+<Based frontmatter={{ ...frontmatter, created: frontmatter.date }}>
+  <header class="paper-header">
+    <p class="paper-venue">{frontmatter.venue}</p>
+    <h1 class="font-serif">{frontmatter.title}</h1>
+    <PaperAuthors authors={frontmatter.authors} note={frontmatter.note} />
+    <PaperLinks links={frontmatter.links} />
+  </header>
+  <slot />
+</Based>
+
+<style>
+  .paper-header {
+    /* clear the fixed navbar */
+    padding: 6rem 5px 1rem 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .paper-venue {
+    font-family: var(--mono-font);
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0;
+  }
+
+  .paper-header h1 {
+    font-size: 2.6rem;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  @media (max-width: 800px) {
+    .paper-header h1 {
+      font-size: 2rem;
+    }
+  }
+</style>

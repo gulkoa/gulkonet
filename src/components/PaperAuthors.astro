@@ -1,0 +1,32 @@
+---
+interface Props {
+  authors: string[];
+  note?: string;
+}
+
+const { authors, note } = Astro.props;
+
+// the site owner is highlighted in the author list (a trailing * marks equal contribution)
+const me = "Alex Gulko";
+const isMe = (author: string) => author.replace(/\*$/, "") === me;
+---
+
+<p class="paper-authors">
+  {authors.map((author, i) => (
+    <Fragment>{isMe(author) ? <strong>{author}</strong> : author}{i < authors.length - 1 ? ", " : ""}</Fragment>
+  ))}
+  {note && <span class="paper-note"> · {note}</span>}
+</p>
+
+<style scoped>
+  .paper-authors {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  .paper-authors strong {
+    font-weight: 700;
+  }
+  .paper-note {
+    color: #555;
+  }
+</style>

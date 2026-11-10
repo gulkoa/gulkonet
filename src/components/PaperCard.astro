@@ -1,5 +1,6 @@
 ---
-import { FileText, Github } from "lucide-astro";
+import PaperAuthors from "./PaperAuthors.astro";
+import PaperLinks from "./PaperLinks.astro";
 
 interface PaperLink {
   label: string;
@@ -13,34 +14,18 @@ interface Props {
   venue: string;
   description: string;
   links: PaperLink[];
+  href: string; // the write-up page
 }
 
-const { title, authors, note, venue, description, links } = Astro.props;
-
-// the site owner is highlighted in the author list
-const me = "Alex Gulko";
-
-const isRepo = (href: string) => /^https?:\/\/(www\.)?github\.com\//.test(href);
+const { title, authors, note, venue, description, links, href } = Astro.props;
 ---
 
 <article class="paper">
   <p class="paper-venue">{venue}</p>
-  <h3 class="paper-title"><a href={links[0].href}>{title}</a></h3>
-  <p class="paper-authors">
-    {authors.map((author, i) => (
-      <Fragment>{author === me ? <strong>{author}</strong> : author}{i < authors.length - 1 ? ", " : ""}</Fragment>
-    ))}
-    {note && <span class="paper-note"> · {note}</span>}
-  </p>
+  <h3 class="paper-title"><a href={href}>{title}</a></h3>
+  <PaperAuthors authors={authors} note={note} />
   <p class="paper-description">{description}</p>
-  <div class="paper-links" data-pagefind-ignore>
-    {links.map((link) => (
-      <a class="paper-link" href={link.href}>
-        {isRepo(link.href) ? <Github size="18" /> : <FileText size="18" />}
-        {link.label}
-      </a>
-    ))}
-  </div>
+  <PaperLinks links={links} writeup={href} />
 </article>
 
 <style scoped>
@@ -50,14 +35,11 @@ const isRepo = (href: string) => /^https?:\/\/(www\.)?github\.com\//.test(href);
     padding: 1rem 1.25rem;
   }
 
-  .paper p {
-    margin: 0;
-  }
-
   .paper-venue {
     font-family: var(--mono-font);
     font-size: 0.9rem;
     color: #555;
+    margin: 0;
   }
 
   .paper-title {
@@ -73,45 +55,9 @@ const isRepo = (href: string) => /^https?:\/\/(www\.)?github\.com\//.test(href);
     color: var(--active-color);
   }
 
-  .paper-authors {
-    font-size: 1.1rem;
-  }
-  .paper-authors strong {
-    font-weight: 700;
-  }
-  .paper-note {
-    color: #555;
-  }
-
-  .paper p.paper-description {
+  .paper-description {
     font-size: 1.1rem;
     line-height: 1.5;
     margin: 0.5rem 0 0.9rem 0;
-  }
-
-  .paper-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .paper-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.8rem;
-    border: 2px solid var(--active-color);
-    border-radius: 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--active-color);
-    background-color: white;
-    transition: all 0.2s ease-in-out;
-  }
-  .paper-link:hover {
-    color: white;
-    background-color: var(--active-color);
-  }
-  .paper-link:active {
-    box-shadow: var(--active-color-transparent) 0px 0px 0px 0.3rem;
   }
 </style>
