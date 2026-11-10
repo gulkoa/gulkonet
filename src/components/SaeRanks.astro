@@ -1,6 +1,6 @@
 ---
-// How CE-Bench and SAEBench rank the 36 SAEs of the paper's architecture experiment.
-// Scores come from the CE-Bench repository (src/data/ce-bench-sae-ranks.json); ranks are computed here.
+// CE-Bench scores of the 36 SAEs of the paper's architecture experiment, next to their SAEBench autointerp scores.
+// Scores come from the CE-Bench repository (src/data/ce-bench-sae-ranks.json); the CE-Bench score and rank are computed here.
 import data from "../data/ce-bench-sae-ranks.json";
 
 // rank 1 is the highest score
@@ -13,9 +13,8 @@ const ranked = (scores: number[]) => {
 
 const saes = data.saes.map((sae) => ({ ...sae, ceBench: sae.contrastive + sae.independence - data.alpha * sae.l0 }));
 const ceRanks = ranked(saes.map((sae) => sae.ceBench));
-const saeBenchRanks = ranked(saes.map((sae) => sae.saebench));
 const rows = saes
-  .map((sae, i) => ({ ...sae, ceRank: ceRanks[i], saeBenchRank: saeBenchRanks[i] }))
+  .map((sae, i) => ({ ...sae, ceRank: ceRanks[i] }))
   .sort((a, b) => a.ceRank - b.ceRank);
 
 const columns = [
@@ -23,13 +22,12 @@ const columns = [
   { key: "architecture", label: "Architecture", numeric: false },
   { key: "l0", label: "L0", numeric: true },
   { key: "ceBench", label: "CE-Bench score", numeric: true },
-  { key: "saebench", label: "SAEBench score", numeric: true },
-  { key: "saeBenchRank", label: "SAEBench rank", numeric: true },
+  { key: "autointerp", label: "Autointerp score", numeric: true },
 ];
 ---
 
 <figure class="sae-ranks">
-  <div class="sr-scroll" tabindex="0" role="region" aria-label="Ranking of 36 sparse autoencoders, scrollable">
+  <div class="sr-scroll" tabindex="0" role="region" aria-label="CE-Bench and autointerp scores of 36 sparse autoencoders, scrollable">
     <table>
       <thead>
         <tr>
@@ -42,13 +40,12 @@ const columns = [
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr data-ce-rank={row.ceRank} data-architecture={row.architecture} data-l0={row.l0} data-ce-bench={row.ceBench} data-saebench={row.saebench} data-sae-bench-rank={row.saeBenchRank}>
+          <tr data-ce-rank={row.ceRank} data-architecture={row.architecture} data-l0={row.l0} data-ce-bench={row.ceBench} data-autointerp={row.autointerp}>
             <td class="sr-num sr-rank">{row.ceRank}</td>
             <td>{row.architecture}</td>
             <td class="sr-num">{Math.round(row.l0)}</td>
             <td class="sr-num">{row.ceBench.toFixed(1)}</td>
-            <td class="sr-num">{row.saebench.toFixed(4)}</td>
-            <td class="sr-num sr-rank">{row.saeBenchRank}</td>
+            <td class="sr-num">{row.autointerp.toFixed(4)}</td>
           </tr>
         ))}
       </tbody>

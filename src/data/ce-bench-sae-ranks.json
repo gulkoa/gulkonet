@@ -7,252 +7,252 @@
    "l0": 21.106,
    "contrastive": 77.6,
    "independence": 171.373,
-   "saebench": 0.882068
+   "autointerp": 0.882068
   },
   {
    "architecture": "batch-top-k",
    "l0": 41.913,
    "contrastive": 72.578,
    "independence": 168.316,
-   "saebench": 0.886458
+   "autointerp": 0.886458
   },
   {
    "architecture": "batch-top-k",
    "l0": 84.331,
    "contrastive": 69.987,
    "independence": 162.995,
-   "saebench": 0.877961
+   "autointerp": 0.877961
   },
   {
    "architecture": "batch-top-k",
    "l0": 168.649,
    "contrastive": 67.376,
    "independence": 121.425,
-   "saebench": 0.875697
+   "autointerp": 0.875697
   },
   {
    "architecture": "batch-top-k",
    "l0": 339.398,
    "contrastive": 72.246,
    "independence": 116.545,
-   "saebench": 0.871782
+   "autointerp": 0.871782
   },
   {
    "architecture": "batch-top-k",
    "l0": 695.599,
    "contrastive": 54.29,
    "independence": 58.211,
-   "saebench": 0.861383
+   "autointerp": 0.861383
   },
   {
    "architecture": "gated",
    "l0": 53.844,
    "contrastive": 80.469,
    "independence": 185.429,
-   "saebench": 0.861115
+   "autointerp": 0.861115
   },
   {
    "architecture": "gated",
    "l0": 88.228,
    "contrastive": 76.366,
    "independence": 197.9,
-   "saebench": 0.847731
+   "autointerp": 0.847731
   },
   {
    "architecture": "gated",
    "l0": 175.181,
    "contrastive": 78.036,
    "independence": 175.544,
-   "saebench": 0.833237
+   "autointerp": 0.833237
   },
   {
    "architecture": "gated",
    "l0": 408.725,
    "contrastive": 72.287,
    "independence": 115.18,
-   "saebench": 0.826219
+   "autointerp": 0.826219
   },
   {
    "architecture": "gated",
    "l0": 662.27,
    "contrastive": 75.101,
    "independence": 115.342,
-   "saebench": 0.823026
+   "autointerp": 0.823026
   },
   {
    "architecture": "gated",
    "l0": 1149.887,
    "contrastive": 56.645,
    "independence": 65.981,
-   "saebench": 0.822735
+   "autointerp": 0.822735
   },
   {
    "architecture": "jumprelu",
    "l0": 21.735,
    "contrastive": 49.893,
    "independence": 188.685,
-   "saebench": 0.889503
+   "autointerp": 0.889503
   },
   {
    "architecture": "jumprelu",
    "l0": 42.399,
    "contrastive": 53.536,
    "independence": 147.114,
-   "saebench": 0.872668
+   "autointerp": 0.872668
   },
   {
    "architecture": "jumprelu",
    "l0": 85.783,
    "contrastive": 56.981,
    "independence": 134.363,
-   "saebench": 0.865457
+   "autointerp": 0.865457
   },
   {
    "architecture": "jumprelu",
    "l0": 162.454,
    "contrastive": 59.666,
    "independence": 116.264,
-   "saebench": 0.859603
+   "autointerp": 0.859603
   },
   {
    "architecture": "jumprelu",
    "l0": 305.344,
    "contrastive": 64.516,
    "independence": 147.473,
-   "saebench": 0.856852
+   "autointerp": 0.856852
   },
   {
    "architecture": "jumprelu",
    "l0": 605.199,
    "contrastive": 59.929,
    "independence": 155.792,
-   "saebench": 0.841472
+   "autointerp": 0.841472
   },
   {
    "architecture": "p-anneal",
    "l0": 48.813,
    "contrastive": 94.167,
    "independence": 157.249,
-   "saebench": 0.848735
+   "autointerp": 0.848735
   },
   {
    "architecture": "p-anneal",
    "l0": 73.857,
    "contrastive": 85.707,
    "independence": 164.385,
-   "saebench": 0.856424
+   "autointerp": 0.856424
   },
   {
    "architecture": "p-anneal",
    "l0": 120.957,
    "contrastive": 81.591,
    "independence": 137.198,
-   "saebench": 0.847113
+   "autointerp": 0.847113
   },
   {
    "architecture": "p-anneal",
    "l0": 302.897,
    "contrastive": 73.748,
    "independence": 173.088,
-   "saebench": 0.827929
+   "autointerp": 0.827929
   },
   {
    "architecture": "p-anneal",
    "l0": 497.192,
    "contrastive": 67.488,
    "independence": 158.802,
-   "saebench": 0.825714
+   "autointerp": 0.825714
   },
   {
    "architecture": "p-anneal",
    "l0": 1064.434,
    "contrastive": 58.293,
    "independence": 78.349,
-   "saebench": 0.786714
+   "autointerp": 0.786714
   },
   {
    "architecture": "standard",
    "l0": 63.498,
    "contrastive": 76.183,
    "independence": 84.451,
-   "saebench": 0.864959
+   "autointerp": 0.864959
   },
   {
    "architecture": "standard",
    "l0": 125.306,
    "contrastive": 70.833,
    "independence": 81.724,
-   "saebench": 0.847576
+   "autointerp": 0.847576
   },
   {
    "architecture": "standard",
    "l0": 212.356,
    "contrastive": 69.11,
    "independence": 82.338,
-   "saebench": 0.847533
+   "autointerp": 0.847533
   },
   {
    "architecture": "standard",
    "l0": 468.85,
    "contrastive": 72.632,
    "independence": 91.44,
-   "saebench": 0.830914
+   "autointerp": 0.830914
   },
   {
    "architecture": "standard",
    "l0": 835.054,
    "contrastive": 69.712,
    "independence": 89.204,
-   "saebench": 0.80751
+   "autointerp": 0.80751
   },
   {
    "architecture": "standard",
    "l0": 1262.172,
    "contrastive": 66.055,
    "independence": 83.342,
-   "saebench": 0.791935
+   "autointerp": 0.791935
   },
   {
    "architecture": "top-k",
    "l0": 21.694,
    "contrastive": 95.138,
    "independence": 188.987,
-   "saebench": 0.869948
+   "autointerp": 0.869948
   },
   {
    "architecture": "top-k",
    "l0": 43.72,
    "contrastive": 89.7,
    "independence": 172.106,
-   "saebench": 0.876923
+   "autointerp": 0.876923
   },
   {
    "architecture": "top-k",
    "l0": 87.736,
    "contrastive": 81.057,
    "independence": 134.203,
-   "saebench": 0.879598
+   "autointerp": 0.879598
   },
   {
    "architecture": "top-k",
    "l0": 173.36,
    "contrastive": 74.922,
    "independence": 125.096,
-   "saebench": 0.872012
+   "autointerp": 0.872012
   },
   {
    "architecture": "top-k",
    "l0": 334.383,
    "contrastive": 79.657,
    "independence": 96.134,
-   "saebench": 0.86191
+   "autointerp": 0.86191
   },
   {
    "architecture": "top-k",
    "l0": 655.734,
    "contrastive": 62.417,
    "independence": 59.69,
-   "saebench": 0.875738
+   "autointerp": 0.875738
   }
  ]
 }

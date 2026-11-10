@@ -63,10 +63,10 @@ Add the two up, subtract a small penalty based on the SAE's sparsity, and you ha
 
 Those numbers come from 48 pretrained SAEs that SAEBench had already graded. We also used CE-Bench to compare SAEs with each other: top-k and p-anneal architectures came out as the most interpretable, wider SAEs beat narrower ones, and the middle layers of the LLM gave the clearest features.
 
-Here is the ranking itself for 36 of those SAEs: six architectures at six sparsity levels each, all 65k wide and reading layer 12 of Gemma-2-2B. Click a column to sort by it.
+Here are the CE-Bench scores of 36 of those SAEs next to their autointerp scores from SAEBench: six architectures at six sparsity levels each, all 65k wide and reading layer 12 of Gemma-2-2B. Click a column to sort by it.
 
 <SaeRanks>
-  CE-Bench score is contrastive + independence − 0.25 × L0, where L0 is how many features fire per token on average. SAEBench score is its LLM-judged interpretability score.
+  CE-Bench score is contrastive + independence − 0.25 × L0, where L0 is how many features fire per token on average. Autointerp score is SAEBench's LLM-judged interpretability score for the same SAE.
 </SaeRanks>
 
 One catch: the stories themselves were written by GPT-4.1, so the benchmark may favor models that are at home in GPT-style text.
