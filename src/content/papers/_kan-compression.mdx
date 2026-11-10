@@ -17,6 +17,8 @@ links:
 import MlpVsKan from '../../components/diagrams/MlpVsKan.astro'
 import KanRateDistortion from '../../components/diagrams/KanRateDistortion.astro'
 
+{/* Hidden for now: the leading underscore in the file name keeps this page out of the papers collection. */}
+
 ## TL;DR
 
 Kolmogorov-Arnold Networks (KANs) showed up in 2024 as a possible replacement for the MLP. Together with [Hanqi Guo](https://hguo.github.io/) at Ohio State, I spent 2024 and early 2025 testing whether they make better **neural compressors** for scientific data. The short answer: a KAN can shrink a 1.8 GB hurricane simulation **8,600 times** and keep up with a classic compressor. This work is unpublished, so this page is the write-up.
@@ -31,11 +33,11 @@ Instead of storing data, you can store a small neural network that has memorized
   <span slot="caption">Blue marks what gets learned. An MLP learns a single number per connection and reuses one fixed activation in every node. A KAN learns a whole curve per connection.</span>
 </MlpVsKan>
 
-An MLP learns one number for every connection and applies the same fixed activation everywhere. A KAN turns this around: every connection carries its own learnable curve (a spline), and the nodes only add things up. The pitch is more expressive power per parameter, which is exactly what a compressor wants.
+An MLP learns one number for every connection and applies the same fixed activation everywhere. A KAN turns this around: every connection carries its own learnable curve (a spline), and the nodes only add things up. The KAN paper reports that much smaller KANs can match or beat larger MLPs at fitting functions, and the number of parameters is what a neural compressor pays for.
 
 ## What I tried
 
-The first round was in 2024: a KAN and a SIREN fitted to the same small vortex simulation, a few hundred runs in total. KANs reached a higher PSNR, but only at low compression ratios.
+The first round was in 2024: a KAN and a SIREN fitted to the same small vortex simulation.
 
 The second round, in early 2025, was on something bigger: 20 time steps of the Hurricane Isabel simulation, 1.8 GB of data. I took fVSRN, a neural compressor that pairs a small grid of learnable features with an MLP, and swapped the MLP for a KAN. In the code it is called fVSRKAN. Then I let Optuna tune it and compared it with SIREN, the original fVSRN, and TTHRESH, a classic compressor with no neural network inside.
 
@@ -45,8 +47,8 @@ The second round, in early 2025, was on something bigger: 20 time steps of the H
 
 The best KAN run squeezed the data **8,615 times**, down to 204 KB, at a PSNR of 35.65. A TTHRESH file of about that size has roughly the same PSNR (35.50), but the KAN keeps more of the structure: an SSIM of 0.956 against 0.931.
 
-Against its own MLP twin it is a trade: the one fVSRN run with complete metrics is almost half the size (117 KB) for 0.9 less PSNR.
+Against its own MLP twin it is a trade: the one fVSRN run with complete metrics is a little over half the size (117 KB) for 0.9 less PSNR.
 
 ## What came out of it
 
-The SIREN and TTHRESH numbers in my [INR blog post](/blog/inr) come from this benchmark. And the benchmarking code I wrote for it, one interface for neural and classic compressors with the metrics built in, later turned into [litl](/projects/litl).
+The SIREN and TTHRESH numbers in my [INR blog post](/blog/inr) come from this benchmark.
