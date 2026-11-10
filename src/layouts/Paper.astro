@@ -8,6 +8,7 @@ interface Props {
   frontmatter: {
     title: string;
     authors: (string | { name: string; url: string })[];
+    advisors?: (string | { name: string; url: string })[];
     note?: string;
     venue: string;
     date: string;
@@ -24,7 +25,7 @@ const { frontmatter } = Astro.props;
   <header class="paper-header">
     <p class="paper-venue">{frontmatter.venue}</p>
     <h1 class="font-serif">{frontmatter.title}</h1>
-    <PaperAuthors authors={frontmatter.authors} note={frontmatter.note} />
+    <PaperAuthors authors={frontmatter.authors} advisors={frontmatter.advisors} note={frontmatter.note} />
     <PaperLinks links={frontmatter.links} />
   </header>
   <slot />

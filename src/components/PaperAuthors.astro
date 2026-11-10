@@ -1,23 +1,38 @@
 ---
-type Author = string | { name: string; url: string };
+// A name, or a name with a link to that person's website. A trailing * marks equal contribution.
+type Person = string | { name: string; url: string };
 
 interface Props {
-  authors: Author[];
+  authors: Person[];
+  advisors?: Person[];
   note?: string;
 }
 
 const { note } = Astro.props;
-const authors = Astro.props.authors.map((author) => (typeof author === "string" ? { name: author, url: undefined } : author));
 
-// the site owner is highlighted in the author list (a trailing * marks equal contribution)
+const normalize = (person: Person) => {
+  const { name, url } = typeof person === "string" ? { name: person, url: undefined } : person;
+  const starred = name.endsWith("*");
+  return { name: starred ? name.slice(0, -1) : name, url, star: starred ? "*" : "" };
+};
+const authors = Astro.props.authors.map(normalize);
+const advisors = (Astro.props.advisors ?? []).map(normalize);
+
+// the site owner is highlighted in the author list
 const me = "Alex Gulko";
-const isMe = (author: string) => author.replace(/\*$/, "") === me;
 ---
 
 <p class="paper-authors">
   {authors.map((author, i) => (
-    <Fragment>{isMe(author.name) ? <strong>{author.name}</strong> : author.url ? <a href={author.url}>{author.name}</a> : author.name}{i < authors.length - 1 ? ", " : ""}</Fragment>
+    <Fragment>{author.name === me
+      ? <strong>{author.name}{author.star}</strong>
+      : author.url ? <Fragment><a href={author.url}>{author.name}</a>{author.star}</Fragment> : <Fragment>{author.name}{author.star}</Fragment>}{i < authors.length - 1 ? ", " : ""}</Fragment>
   ))}
+  {advisors.length > 0 && (
+    <span class="paper-note"> · Advised by {advisors.map((advisor, i) => (
+      <Fragment>{advisor.url ? <a href={advisor.url}>{advisor.name}</a> : advisor.name}{i < advisors.length - 1 ? ", " : ""}</Fragment>
+    ))}</span>
+  )}
   {note && <span class="paper-note"> · {note}</span>}
 </p>
 

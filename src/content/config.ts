@@ -34,15 +34,18 @@ const blogCollection = defineCollection({
   }),
 });
 
+// a person on a paper: a name, or a name with a link to their website; a trailing * marks equal contribution
+const person = z.union([z.string(), z.object({ name: z.string(), url: z.string() })]);
+
 // one MDX file per paper in src/content/papers: the frontmatter feeds the home page list
 // (newest first) and the body is the write-up shown on /papers/<slug>
 const papersCollection = defineCollection({
   type: 'content',
   schema: z.object({
     title: z.string(),
-    // a name, or a name with a link to that person's website; a trailing * marks equal contribution
-    authors: z.array(z.union([z.string(), z.object({ name: z.string(), url: z.string() })])).min(1),
-    note: z.string().optional(), // shown after the authors, e.g. the advisor of a thesis
+    authors: z.array(person).min(1),
+    advisors: z.array(person).optional(), // shown after the authors as "Advised by ..."
+    note: z.string().optional(), // free text shown after the authors
     venue: z.string(),
     date: z.string(), // publication date, used for sorting
     description: z.string(),

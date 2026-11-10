@@ -10,6 +10,7 @@ interface PaperLink {
 interface Props {
   title: string;
   authors: (string | { name: string; url: string })[];
+  advisors?: (string | { name: string; url: string })[];
   note?: string;
   venue: string;
   description: string;
@@ -17,13 +18,13 @@ interface Props {
   href: string; // the write-up page
 }
 
-const { title, authors, note, venue, description, links, href } = Astro.props;
+const { title, authors, advisors, note, venue, description, links, href } = Astro.props;
 ---
 
 <article class="paper">
   <p class="paper-venue">{venue}</p>
   <h3 class="paper-title"><a href={href}>{title}</a></h3>
-  <PaperAuthors authors={authors} note={note} />
+  <PaperAuthors authors={authors} advisors={advisors} note={note} />
   <p class="paper-description">{description}</p>
   <PaperLinks links={links} writeup={href} />
 </article>
