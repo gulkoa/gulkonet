@@ -31,9 +31,40 @@ const { title, authors, advisors, note, venue, description, links, href } = Astr
 
 <style scoped>
   .paper {
+    position: relative;
     border: rgb(230, 230, 230) 1px solid;
     border-radius: 16px;
     padding: 1rem 1.25rem;
+  }
+
+  /* Hovering the title turns the top right corner over, like the corner of a page.
+     The square sits on the card's corner: the half above the diagonal is the page showing
+     through where the corner was, the half below it is the back of the folded corner. */
+  .paper::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(to top right, rgb(232, 234, 239) 0%, rgb(250, 250, 252) 48%, rgb(214, 216, 222) 49%, rgb(214, 216, 222) 51%, white 52%);
+    border-left: rgb(218, 220, 226) 1px solid;
+    border-bottom: rgb(218, 220, 226) 1px solid;
+    border-bottom-left-radius: 12px;
+    box-shadow: -2px 2px 5px -1px rgba(0, 0, 0, 0.16);
+    transform: scale(0);
+    transform-origin: top right;
+    transition: transform 0.25s ease;
+    pointer-events: none;
+  }
+  .paper:has(.paper-title a:hover)::after,
+  .paper:has(.paper-title a:focus-visible)::after {
+    transform: scale(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .paper::after {
+      transition: none;
+    }
   }
 
   .paper-venue {
