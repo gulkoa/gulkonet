@@ -11,6 +11,7 @@ font: 'mono'
 ---
 import { Github, Package } from 'lucide-astro'
 import LinkCard from '../../components/LinkCard.astro'
+import LitlDemo from '../../components/LitlDemo.astro'
 import LitlPipeline from '../../components/diagrams/LitlPipeline.astro'
 import LitlFileFormat from '../../components/diagrams/LitlFileFormat.astro'
 
@@ -67,41 +68,20 @@ class Quantize(Compressor):
 
 A blob can be an array, raw bytes, or a whole PyTorch model, so the "compressed file" can literally be a neural network.
 
-## Batteries included
+## Try it
 
-Point litl at that class and some data, and it runs the whole loop: compress, decompress, compare.
+Here is that class in a folder with some data: a smooth 64×64×64 field saved as `field.npy`. The terminal below replays what litl really prints, so go ahead and type.
 
-```text
-$ litl evaluate quantize.py:Quantize field.npy config.json -c field.litl
-┓• ┓
-┃┓╋┃
-┗┗┗┗
-Running litl evaluate
-Compressed data saved to field.litl
-Metrics:
-{
-    'original_size': 1048704,
-    'compressed_size': 262272,
-    'compression_ratio': 3.998535871156662,
-    'compression_time': 0.0008983612060546875,
-    'io_time': 0.00011491775512695312,
-    'total_litl_size': 47378,
-    'decompression_time': 0.0017826557159423828,
-    'mse': 1.1364933925506193e-05,
-    'psnr': 52.96345520019531,
-    'ssim': 0.9994416832923889,
-    'l1': 0.002910611219704151
-}
-```
+<LitlDemo />
 
-That is a real run on a smooth 64×64×64 field: 1 MB in, a 47 KB file out, at a PSNR of 53. The same four commands (`compress`, `decompress`, `evaluate`, `info`) work for any compressor, so swapping in a different one is a matter of changing one argument.
+Those are recordings of real runs: 1 MB in, a 46 KB file out, at a PSNR of 53. The same four commands (`compress`, `decompress`, `evaluate`, `info`) work for any compressor, so swapping in a different one is a matter of changing one argument.
 
 ## The .litl file
 
 Whatever your compressor returns gets wrapped into a `.litl` file, together with everything needed to open it again later: which compressor made it, which version, and its settings.
 
 <LitlFileFormat>
-  <span slot="caption">The file from the run above, byte by byte. The header is 13 bytes, and both the metadata and the blob get an extra Zstandard pass.</span>
+  <span slot="caption">The `field.litl` from the demo, byte by byte. The header is 13 bytes, and both the metadata and the blob get an extra Zstandard pass.</span>
 </LitlFileFormat>
 
 ```text

@@ -1,0 +1,174 @@
+{
+ "version": "0.1.3",
+ "files": {
+  "quantize.py": {
+   "bytes": 894,
+   "text": "import numpy as np\n\nfrom litl import DataWrapper\nfrom litl.blobs import ArrayBlob\nfrom litl.compressors import Compressor, CompressorAbout\n\n\nclass Quantize(Compressor):\n\n    @classmethod\n    def about(cls):\n        return CompressorAbout(name=\"Quantize\", description=\"Rounds every value to 8 bits\", version=\"1.0.0\")\n\n    @classmethod\n    def blob_class(cls):\n        return ArrayBlob\n\n    @classmethod\n    def compress(cls, data: DataWrapper, config: dict):\n        array = data.numpy()\n        low, high = float(array.min()), float(array.max())\n        step = (high - low) / 255\n\n        quantized = np.round((array - low) / step).astype(np.uint8)\n        return ArrayBlob(quantized), {\"min\": low, \"step\": step}\n\n    @classmethod\n    def decompress(cls, blob: ArrayBlob, meta: dict):\n        array = blob.array * meta[\"step\"] + meta[\"min\"]\n        return DataWrapper(array.astype(np.float32))"
+  },
+  "config.json": {
+   "bytes": 3,
+   "text": "{}"
+  },
+  "field.npy": {
+   "bytes": 1048704,
+   "about": "a 64×64×64 float32 array"
+  }
+ },
+ "produced": {
+  "litl": 47378,
+  "npy": 1048704
+ },
+ "usage": {
+  "litl": [
+   "usage: litl [-h] [-m METRICS_PATH] [--version]",
+   "            {compress,decompress,evaluate,info} ..."
+  ],
+  "compress": [
+   "usage: litl compress [-h] compressor original_path config_path compressed_path"
+  ],
+  "evaluate": [
+   "usage: litl evaluate [-h] [-c COMPRESSED_PATH] [-d DECOMPRESSED_PATH]",
+   "                     compressor original_path config_path"
+  ],
+  "decompress": [
+   "usage: litl decompress [-h] [-o ORIGINAL_PATH]",
+   "                       compressed_path decompressed_path"
+  ],
+  "info": [
+   "usage: litl info [-h] input_path"
+  ]
+ },
+ "help": {
+  "litl": [
+   "usage: litl [-h] [-m METRICS_PATH] [--version]",
+   "            {compress,decompress,evaluate,info} ...",
+   "",
+   "Neat CLI for lossy compression via litl",
+   "",
+   "positional arguments:",
+   "  {compress,decompress,evaluate,info}",
+   "    compress            Compress data into a .litl file",
+   "    decompress          Decompress a .litl file",
+   "    evaluate            Compress and decompress data, while evaluating the",
+   "                        compression",
+   "    info                Print metadata stored in the .litl file",
+   "",
+   "options:",
+   "  -h, --help            show this help message and exit",
+   "  -m, --metrics_path METRICS_PATH",
+   "                        Where to save the metrics json",
+   "  --version             Show the version of litl"
+  ],
+  "compress": [
+   "usage: litl compress [-h] compressor original_path config_path compressed_path",
+   "",
+   "positional arguments:",
+   "  compressor       Compressor to use",
+   "  original_path    Where to find input data to compress",
+   "  config_path      Where to find config json",
+   "  compressed_path  Where to save the compressed litl file",
+   "",
+   "options:",
+   "  -h, --help       show this help message and exit"
+  ],
+  "evaluate": [
+   "usage: litl evaluate [-h] [-c COMPRESSED_PATH] [-d DECOMPRESSED_PATH]",
+   "                     compressor original_path config_path",
+   "",
+   "positional arguments:",
+   "  compressor            Compressor to use",
+   "  original_path         Where to find input data to compress",
+   "  config_path           Where to find config json",
+   "",
+   "options:",
+   "  -h, --help            show this help message and exit",
+   "  -c, --compressed_path COMPRESSED_PATH",
+   "                        Where to save the intermediate compressed .litl file",
+   "  -d, --decompressed_path DECOMPRESSED_PATH",
+   "                        Where to save the decompressed data"
+  ],
+  "decompress": [
+   "usage: litl decompress [-h] [-o ORIGINAL_PATH]",
+   "                       compressed_path decompressed_path",
+   "",
+   "positional arguments:",
+   "  compressed_path       Where to find the compressed litl file",
+   "  decompressed_path     Where to save the decompressed data",
+   "",
+   "options:",
+   "  -h, --help            show this help message and exit",
+   "  -o, --original_path ORIGINAL_PATH",
+   "                        Where to find original data to compare against,",
+   "                        optional"
+  ],
+  "info": [
+   "usage: litl info [-h] input_path",
+   "",
+   "positional arguments:",
+   "  input_path  Where to find the .litl file",
+   "",
+   "options:",
+   "  -h, --help  show this help message and exit"
+  ]
+ },
+ "versionLine": "litl v0.1.3",
+ "invalidChoice": "litl: error: argument command: invalid choice: 'badcommand' (choose from 'compress', 'decompress', 'evaluate', 'info')",
+ "runs": {
+  "evaluate": [
+   "Running litl evaluate",
+   "Metrics:",
+   "{",
+   "    'original_size': 1048704,",
+   "    'compressed_size': 262272,",
+   "    'compression_ratio': 3.998535871156662,",
+   "    'compression_time': 0.0010688304901123047,",
+   "    'io_time': 0.00011587142944335938,",
+   "    'decompression_time': 0.0033578872680664062,",
+   "    'mse': 1.1364933925506193e-05,",
+   "    'psnr': 52.96345520019531,",
+   "    'ssim': 0.9994416832923889,",
+   "    'l1': 0.002910611219704151",
+   "}"
+  ],
+  "evaluateSaved": [
+   "Running litl evaluate",
+   "Compressed data saved to field.litl",
+   "Decompressed data saved to restored.npy",
+   "Metrics:",
+   "{",
+   "    'original_size': 1048704,",
+   "    'compressed_size': 262272,",
+   "    'compression_ratio': 3.998535871156662,",
+   "    'compression_time': 0.0008792877197265625,",
+   "    'io_time': 0.00012087821960449219,",
+   "    'total_litl_size': 47378,",
+   "    'decompression_time': 0.0019106864929199219,",
+   "    'mse': 1.1364933925506193e-05,",
+   "    'psnr': 52.96345520019531,",
+   "    'ssim': 0.9994416832923889,",
+   "    'l1': 0.002910611219704151",
+   "}"
+  ],
+  "compress": [
+   "Running litl compress",
+   "Compressed data saved to field.litl",
+   "Metrics: {'original_size': 1048704, 'compressed_size': 262272, 'compression_ratio': 3.998535871156662, 'compression_time': 0.0008149147033691406, 'io_time': 0.00011372566223144531, 'total_litl_size': 47378}"
+  ],
+  "info": [
+   "Running litl info",
+   "File field.litl was compressed with quantize.py:Quantize v1.0.0 using litl v0.1.3",
+   "Metadata:",
+   "{'min': -1.499533772468567, 'step': 0.011761049195831897}"
+  ],
+  "decompress": [
+   "Running litl decompress",
+   "Decompressed data saved to restored.npy",
+   "Metrics: {'decompression_time': 0.0025017261505126953}"
+  ],
+  "decompressCompared": [
+   "Running litl decompress",
+   "Decompressed data saved to restored.npy",
+   "Metrics: {'decompression_time': 0.00498199462890625, 'mse': 1.1364933925506193e-05, 'psnr': 52.96345520019531, 'ssim': 0.9994416832923889, 'l1': 0.002910611219704151, 'original_size': 1048704, 'compressed_size': 262272, 'compression_ratio': 3.998535871156662}"
+  ]
+ }
+}

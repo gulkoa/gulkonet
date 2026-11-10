@@ -1,0 +1,526 @@
+---
+// A pretend terminal for the litl project page. It replays output recorded from the real CLI
+// (src/data/litl-demo.json) and keeps a tiny in-memory folder, so the commands build on each other.
+import demo from "../data/litl-demo.json";
+
+const compressor = "quantize.py:Quantize";
+const chips = [
+  { label: "evaluate", command: `litl evaluate ${compressor} field.npy config.json` },
+  { label: "compress", command: `litl compress ${compressor} field.npy config.json field.litl` },
+  { label: "info", command: "litl info field.litl" },
+  { label: "decompress", command: "litl decompress field.litl restored.npy -o field.npy" },
+  { label: "ls", command: "ls" },
+  { label: "--help", command: "litl --help" },
+];
+---
+
+<div class="litl-demo" data-pagefind-ignore>
+  <div class="ld-bar">
+    <svg class="ld-mark" viewBox="-4 12 136 120" aria-hidden="true">
+      <g fill="none" stroke="#7ee787" stroke-width="11">
+        <path d="M2,24 H16 V120 H30"></path>
+        <path d="M34,72 H48 V120 H62"></path>
+        <path d="M80,50 V120 H94 M66,72 H94"></path>
+        <path d="M98,24 H112 V120 H126"></path>
+      </g>
+      <circle cx="48" cy="26" r="7.5" fill="#79c0ff"></circle>
+    </svg>
+    <span class="ld-title">demo</span>
+    <span class="ld-note">replays output recorded from litl {demo.version}</span>
+  </div>
+
+  <div class="ld-screen" role="log" aria-live="polite" aria-label="Terminal output">
+    <div class="ld-line ld-comment"># This folder has a compressor (quantize.py), a 64×64×64 field (field.npy) and an empty config.</div>
+    <div class="ld-line ld-comment"># Type a command and press Enter. Tab takes the hint.</div>
+  </div>
+
+  <form class="ld-form">
+    <span class="ld-prompt" aria-hidden="true">$</span>
+    <div class="ld-field">
+      <div class="ld-ghost" aria-hidden="true"><span class="ld-typed"></span><span class="ld-rest"></span></div>
+      <input class="ld-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type a litl command" />
+    </div>
+    <button type="button" class="ld-key ld-tab" title="Fill in the hint">Tab</button>
+    <button type="submit" class="ld-key ld-run" title="Run the command">Enter</button>
+  </form>
+
+  <div class="ld-chips">
+    <span>or run</span>
+    {chips.map((chip) => <button type="button" class="ld-chip" data-command={chip.command}>{chip.label}</button>)}
+  </div>
+
+  <noscript>
+    <p class="ld-noscript">This demo needs JavaScript. Without it, here is what <code>litl evaluate</code> prints:</p>
+    <pre class="ld-noscript">{demo.runs.evaluate.join("\n")}</pre>
+  </noscript>
+
+  <script type="application/json" class="ld-data" set:html={JSON.stringify(demo).replace(/</g, "\\u003c")} />
+</div>
+
+<script>
+  interface FileInfo { bytes: number; text?: string; about?: string; kind?: "litl" | "npy" }
+  interface DemoData {
+    version: string;
+    files: Record<string, FileInfo>;
+    produced: { litl: number; npy: number };
+    usage: Record<string, string[]>;
+    help: Record<string, string[]>;
+    versionLine: string;
+    invalidChoice: string;
+    runs: Record<string, string[]>;
+  }
+
+  const COMPRESSOR = "quantize.py:Quantize";
+  const SUBCOMMANDS = ["compress", "decompress", "evaluate", "info"];
+  const POSITIONALS: Record<string, string[]> = {
+    compress: ["compressor", "original_path", "config_path", "compressed_path"],
+    evaluate: ["compressor", "original_path", "config_path"],
+    decompress: ["compressed_path", "decompressed_path"],
+    info: ["input_path"],
+  };
+  // option flags that take a value, by the name argparse stores them under
+  const OPTIONS: Record<string, Record<string, string>> = {
+    compress: {},
+    evaluate: { "-c": "compressed_path", "--compressed_path": "compressed_path", "-d": "decompressed_path", "--decompressed_path": "decompressed_path" },
+    decompress: { "-o": "original_path", "--original_path": "original_path" },
+    info: {},
+  };
+  const OPTION_LABELS: Record<string, string> = { compressed_path: "-c/--compressed_path", decompressed_path: "-d/--decompressed_path", original_path: "-o/--original_path" };
+  const STATUS: Record<string, string> = { compress: "Compressing...", decompress: "Decompressing...", evaluate: "Evaluating compression...", info: "Reading metadata..." };
+  const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+  const size = (bytes: number) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : bytes >= 1024 ? `${Math.round(bytes / 1024)} KB` : `${bytes} B`);
+
+  document.querySelectorAll<HTMLElement>(".litl-demo").forEach((root) => {
+    const data: DemoData = JSON.parse(root.querySelector(".ld-data")?.textContent || "{}");
+    const screen = root.querySelector(".ld-screen") as HTMLElement;
+    const form = root.querySelector(".ld-form") as HTMLFormElement;
+    const input = root.querySelector(".ld-input") as HTMLInputElement;
+    const typed = root.querySelector(".ld-typed") as HTMLElement;
+    const rest = root.querySelector(".ld-rest") as HTMLElement;
+    const mark = root.querySelector(".ld-mark") as SVGElement;
+    if (!data.runs || !screen || !form || !input) return;
+
+    const files = new Map<string, FileInfo>(Object.entries(data.files));
+    const steps = [
+      `litl evaluate ${COMPRESSOR} field.npy config.json`,
+      `litl compress ${COMPRESSOR} field.npy config.json field.litl`,
+      "litl info field.litl",
+      "litl decompress field.litl restored.npy -o field.npy",
+      "ls",
+      "litl --help",
+    ];
+    const done = new Set<string>(); // which kinds of command have been run successfully
+    const stepKinds = ["evaluate", "compress", "info", "decompress", "ls", "help"];
+    const history: string[] = [];
+    let historyAt = 0;
+    let busy = false;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ---------- output ----------
+    const line = (text: string, className = "") => {
+      const el = document.createElement("div");
+      el.className = `ld-line ${className}`.trim();
+      el.textContent = text;
+      screen.appendChild(el);
+      return el;
+    };
+    const lines = (texts: string[], className = "") => texts.forEach((t) => line(t, className));
+    const note = (text: string) => line(`demo: ${text}`, "ld-note-line");
+    const comment = (text: string) => line(`# ${text}`, "ld-comment");
+    let lastEcho: HTMLElement | null = null;
+    // show the end of the output, but never scroll the command that produced it out of view
+    const scroll = () => {
+      const bottom = screen.scrollHeight - screen.clientHeight;
+      screen.scrollTop = lastEcho ? Math.min(bottom, lastEcho.offsetTop - 8) : bottom;
+    };
+
+    // color quoted strings and numbers the way litl's own output does
+    const colored = (text: string) => {
+      const el = document.createElement("div");
+      el.className = "ld-line";
+      const running = text.match(/^Running litl (\w+)$/);
+      if (running) {
+        const strong = document.createElement("strong");
+        strong.append("Running litl ");
+        const command = document.createElement("span");
+        command.className = "ld-green";
+        command.textContent = running[1];
+        strong.append(command);
+        el.append(strong);
+      } else {
+        let last = 0;
+        for (const match of text.matchAll(/'[^']*'|[A-Za-z_][\w.:]*|-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/g)) {
+          const token = match[0];
+          const className = token.startsWith("'") ? "ld-green" : /^-?\d/.test(token) ? "ld-blue" : "";
+          if (!className) continue;
+          el.append(text.slice(last, match.index));
+          const span = document.createElement("span");
+          span.className = className;
+          span.textContent = token;
+          el.append(span);
+          last = (match.index ?? 0) + token.length;
+        }
+        el.append(text.slice(last));
+      }
+      screen.appendChild(el);
+    };
+    const banner = () => {
+      const el = document.createElement("div");
+      el.className = "ld-line ld-banner";
+      el.appendChild(mark.cloneNode(true));
+      screen.appendChild(el);
+    };
+
+    // ---------- hints ----------
+    // the visitor may have called their .litl file something else: hints and chips go along with it
+    const lastLitl = () => [...files.keys()].filter((name) => files.get(name)?.kind === "litl").pop();
+    const adapt = (command: string) => (/^litl (info|decompress) /.test(command) && lastLitl() ? command.replace("field.litl", lastLitl()!) : command);
+    const nextStep = () => adapt(steps.find((_, i) => !done.has(stepKinds[i])) ?? "");
+    const hintFor = (value: string) => {
+      if (!value) return nextStep();
+      const next = nextStep();
+      if (next.startsWith(value)) return next;
+      return steps.map(adapt).find((s) => s.startsWith(value)) ?? "";
+    };
+    const refreshHint = () => {
+      const hint = busy ? "" : hintFor(input.value);
+      typed.textContent = input.value;
+      rest.textContent = hint.slice(input.value.length);
+      root.classList.toggle("ld-has-hint", hint.length > input.value.length);
+    };
+    const takeHint = () => {
+      const hint = hintFor(input.value);
+      if (hint) input.value = hint;
+      refreshHint();
+    };
+
+    // ---------- the litl command ----------
+    const usageError = (which: string, message: string) => {
+      lines(data.usage[which]);
+      line(`${which === "litl" ? "litl" : `litl ${which}`}: error: ${message}`);
+    };
+
+    const litl = async (args: string[]) => {
+      if (args.length === 0) return usageError("litl", "the following arguments are required: command");
+      if (args[0] === "-h" || args[0] === "--help") { done.add("help"); return lines(data.help.litl); }
+      if (args[0] === "--version") return line(data.versionLine);
+      if (args[0] === "-m" || args[0] === "--metrics_path") return note("saving metrics with -m is not part of this demo.");
+      const sub = args[0];
+      if (!SUBCOMMANDS.includes(sub)) {
+        if (sub.startsWith("-")) return usageError("litl", `unrecognized arguments: ${sub}`);
+        return usageError("litl", data.invalidChoice.replace(/^litl: error: /, "").replace("'badcommand'", `'${sub}'`));
+      }
+      const tail = args.slice(1);
+      if (tail.includes("-h") || tail.includes("--help")) return lines(data.help[sub]);
+
+      // split into positional arguments and options, the way argparse would
+      const positional: string[] = [];
+      const options: Record<string, string> = {};
+      for (let i = 0; i < tail.length; i++) {
+        const token = tail[i];
+        if (token in OPTIONS[sub]) {
+          const name = OPTIONS[sub][token];
+          const value = tail[i + 1];
+          if (value === undefined || value.startsWith("-")) return usageError(sub, `argument ${OPTION_LABELS[name]}: expected one argument`);
+          options[name] = value;
+          i++;
+        } else if (token.startsWith("-")) {
+          return usageError("litl", `unrecognized arguments: ${token}`);
+        } else {
+          positional.push(token);
+        }
+      }
+      const names = POSITIONALS[sub];
+      if (positional.length < names.length) return usageError(sub, `the following arguments are required: ${names.slice(positional.length).join(", ")}`);
+      if (positional.length > names.length) return usageError("litl", `unrecognized arguments: ${positional.slice(names.length).join(" ")}`);
+      const arg = Object.fromEntries(names.map((name, i) => [name, positional[i]]));
+
+      // from here on the real litl would touch files, so check them against the pretend folder
+      const missing = (name: string) => note(`there is no file called ${name} here. Try ls.`);
+      const writable = (name: string) => {
+        if (name in data.files) { note(`let's not overwrite ${name}.`); return false; }
+        return true;
+      };
+      if (sub === "compress" || sub === "evaluate") {
+        if (arg.compressor !== COMPRESSOR) return note(`the only compressor in this folder is ${COMPRESSOR}.`);
+        if (!files.has(arg.original_path)) return missing(arg.original_path);
+        if (arg.original_path !== "field.npy") return note("there are only recordings for field.npy.");
+        if (!files.has(arg.config_path)) return missing(arg.config_path);
+        if (arg.config_path !== "config.json") return note(`${arg.config_path} is not a config. Use config.json.`);
+      }
+      const litlFile = (name: string) => {
+        if (!files.has(name)) { note(`there is no ${name} yet. Make one with: litl compress ${COMPRESSOR} field.npy config.json ${name.endsWith(".litl") ? name : "field.litl"}`); return false; }
+        if (files.get(name)?.kind !== "litl") { note(`${name} is not a .litl file.`); return false; }
+        return true;
+      };
+
+      let output: string[] = [];
+      let explanation = "";
+      if (sub === "evaluate") {
+        const saved = [options.compressed_path, options.decompressed_path].filter((name): name is string => Boolean(name));
+        if (saved.some((name) => !writable(name))) return;
+        output = saved.length === 0 ? data.runs.evaluate : data.runs.evaluateSaved
+          .filter((l) => options.compressed_path || !(l.startsWith("Compressed data saved") || l.includes("'total_litl_size'")))
+          .filter((l) => options.decompressed_path || !l.startsWith("Decompressed data saved"))
+          .map((l) => l.replace("field.litl", options.compressed_path ?? "").replace("restored.npy", options.decompressed_path ?? ""));
+        if (options.compressed_path) files.set(options.compressed_path, { bytes: data.produced.litl, kind: "litl" });
+        if (options.decompressed_path) files.set(options.decompressed_path, { bytes: data.produced.npy, kind: "npy", about: "the reconstruction" });
+        explanation = `compressed, decompressed and compared in one go. ${saved.length ? `Kept ${saved.join(" and ")}.` : "Nothing was saved."}`;
+      } else if (sub === "compress") {
+        if (!writable(arg.compressed_path)) return;
+        output = data.runs.compress.map((l) => l.replace("field.litl", arg.compressed_path));
+        files.set(arg.compressed_path, { bytes: data.produced.litl, kind: "litl" });
+        explanation = `${arg.compressed_path} now holds the blob and its metadata: ${size(data.produced.litl)} instead of ${size(data.files["field.npy"].bytes)}.`;
+      } else if (sub === "info") {
+        if (!litlFile(arg.input_path)) return;
+        output = data.runs.info.map((l) => l.replace("field.litl", arg.input_path));
+        explanation = "read straight from the file. No compressor was loaded.";
+      } else {
+        if (!litlFile(arg.compressed_path)) return;
+        if (!writable(arg.decompressed_path)) return;
+        if (options.original_path !== undefined) {
+          if (!files.has(options.original_path)) return missing(options.original_path);
+          if (options.original_path !== "field.npy") return note("the original here is field.npy.");
+        }
+        output = (options.original_path ? data.runs.decompressCompared : data.runs.decompress).map((l) => l.replace("restored.npy", arg.decompressed_path));
+        files.set(arg.decompressed_path, { bytes: data.produced.npy, kind: "npy", about: "the reconstruction" });
+        explanation = `the file names its compressor, so litl found quantize.py on its own.${options.original_path ? " -o compared the result with the original." : ""}`;
+      }
+
+      // litl prints its banner and what it is doing, shows a spinner while it works, then the result
+      banner();
+      colored(output[0]);
+      if (!reducedMotion) {
+        const status = line("", "ld-green");
+        let frame = 0;
+        const tick = () => { status.textContent = `${SPINNER[frame++ % SPINNER.length]} ${STATUS[sub]}`; };
+        tick();
+        scroll();
+        const timer = window.setInterval(tick, 80);
+        await new Promise((resolve) => window.setTimeout(resolve, sub === "info" ? 250 : 650));
+        window.clearInterval(timer);
+        status.remove();
+      }
+      output.slice(1).forEach(colored);
+      comment(explanation);
+      done.add(sub);
+    };
+
+    // ---------- everything else the pretend shell knows ----------
+    const run = async (raw: string) => {
+      const text = raw.trim();
+      const echo = line("", "ld-echo");
+      lastEcho = echo;
+      const prompt = document.createElement("span");
+      prompt.className = "ld-prompt";
+      prompt.textContent = "$ ";
+      echo.append(prompt, text);
+      if (!text) return;
+      const argv = text.split(/\s+/);
+      const [command, ...args] = argv;
+
+      if (command === "litl") {
+        await litl(args);
+      } else if (command === "ls") {
+        const names = [...files.keys()].sort();
+        const width = Math.max(...names.map((n) => n.length));
+        names.forEach((name) => line(`${name.padEnd(width)}  ${size(files.get(name)!.bytes).padStart(7)}`));
+        done.add("ls");
+      } else if (command === "cat") {
+        if (!args.length) note("cat needs a file name, like: cat quantize.py");
+        for (const name of args) {
+          const file = files.get(name);
+          if (!file) note(`there is no file called ${name} here. Try ls.`);
+          else if (file.text !== undefined) lines(file.text.split("\n"));
+          else if (file.kind === "litl") note(`${name} is binary. Try: litl info ${name}`);
+          else note(`${name} is binary: ${file.about ?? "an array"}.`);
+        }
+      } else if (command === "clear") {
+        screen.replaceChildren();
+        lastEcho = null;
+      } else if (command === "help") {
+        lines([
+          "This demo replays real litl output. It understands:",
+          "  litl evaluate | compress | decompress | info    the four litl commands",
+          "  litl --help, litl <command> --help              litl's own help",
+          "  ls, cat <file>, clear                           looking around",
+        ], "ld-note-line");
+      } else if (command === "pip" && args.join(" ") === "install litl") {
+        note(`litl ${data.version} is already installed here.`);
+      } else {
+        note(`command not found: ${command}. Type help to see what this demo understands.`);
+      }
+    };
+
+    const submit = async (value: string) => {
+      if (busy) return;
+      busy = true;
+      input.disabled = true;
+      input.value = "";
+      refreshHint();
+      if (value.trim()) { history.push(value.trim()); }
+      historyAt = history.length;
+      await run(value);
+      scroll();
+      busy = false;
+      input.disabled = false;
+      refreshHint();
+    };
+
+    // ---------- wiring ----------
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await submit(input.value);
+      input.focus({ preventScroll: true });
+    });
+    input.addEventListener("input", refreshHint);
+    input.addEventListener("keydown", (e) => {
+      const atEnd = input.selectionStart === input.value.length;
+      if (e.key === "Tab" && !e.shiftKey && rest.textContent) { e.preventDefault(); takeHint(); }
+      else if (e.key === "ArrowRight" && atEnd && rest.textContent) { e.preventDefault(); takeHint(); }
+      else if (e.key === "ArrowUp" && history.length) { e.preventDefault(); historyAt = Math.max(0, historyAt - 1); input.value = history[historyAt]; refreshHint(); }
+      else if (e.key === "ArrowDown" && history.length) { e.preventDefault(); historyAt = Math.min(history.length, historyAt + 1); input.value = history[historyAt] ?? ""; refreshHint(); }
+    });
+    root.querySelector(".ld-tab")?.addEventListener("click", () => { takeHint(); input.focus({ preventScroll: true }); });
+    root.querySelectorAll<HTMLButtonElement>(".ld-chip").forEach((chip) => {
+      chip.addEventListener("click", () => submit(adapt(chip.dataset.command || "")));
+    });
+    // clicking the screen puts the cursor in the prompt, unless the visitor is selecting text
+    screen.addEventListener("click", () => { if (!window.getSelection()?.toString()) input.focus({ preventScroll: true }); });
+
+    refreshHint();
+  });
+</script>
+
+<style is:global>
+  .litl-demo {
+    --ld-bg: #0d1117;
+    --ld-raised: #161b22;
+    --ld-line: #30363d;
+    --ld-text: #e6edf3;
+    --ld-dim: #8b949e;
+    --ld-green: #7ee787;
+    --ld-blue: #79c0ff;
+
+    margin: 2rem 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--ld-bg);
+    color: var(--ld-text);
+    font-family: var(--mono-font);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .litl-demo .ld-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    background: var(--ld-raised);
+    border-bottom: 1px solid var(--ld-line);
+  }
+  .litl-demo .ld-mark { height: 1.5rem; width: auto; display: block; }
+  .litl-demo .ld-title { color: var(--ld-dim); }
+  .litl-demo .ld-note { margin-left: auto; color: var(--ld-dim); font-size: 0.8rem; text-align: right; }
+
+  .litl-demo .ld-screen {
+    position: relative; /* offsetTop of a line is measured from here */
+    height: 27rem;
+    overflow-y: auto;
+    padding: 0.9rem 1rem 0.4rem 1rem;
+    scrollbar-color: var(--ld-line) transparent;
+  }
+  .litl-demo .ld-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    min-height: 1.6em;
+  }
+  .litl-demo .ld-echo { margin-top: 0.6rem; }
+  .litl-demo .ld-comment { color: var(--ld-dim); }
+  .litl-demo .ld-note-line { color: #e3b341; }
+  .litl-demo .ld-green { color: var(--ld-green); }
+  .litl-demo .ld-blue { color: var(--ld-blue); font-weight: 700; }
+  .litl-demo .ld-prompt { color: var(--ld-dim); }
+  .litl-demo .ld-banner .ld-mark { height: 3.4rem; margin: 0.3rem 0; }
+
+  .litl-demo .ld-form {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--ld-line);
+  }
+  .litl-demo .ld-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+  .litl-demo .ld-ghost,
+  .litl-demo .ld-input {
+    font: inherit;
+    font-size: max(16px, 0.9rem); /* 16px keeps phones from zooming in on focus */
+    line-height: 1.6;
+    letter-spacing: 0;
+    white-space: pre;
+    padding: 0;
+    margin: 0;
+  }
+  .litl-demo .ld-ghost {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .litl-demo .ld-typed { visibility: hidden; }
+  .litl-demo .ld-rest { color: #6e7681; }
+  .litl-demo .ld-input {
+    position: relative;
+    display: block;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--ld-text);
+    caret-color: var(--ld-green);
+  }
+  .litl-demo .ld-key {
+    font-family: var(--mono-font);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--ld-line);
+    border-radius: 6px;
+    background: var(--ld-raised);
+    color: var(--ld-dim);
+    transition: all 0.2s ease-in-out;
+  }
+  .litl-demo .ld-key:hover { color: var(--ld-text); border-color: var(--ld-dim); }
+  .litl-demo .ld-tab { visibility: hidden; }
+  .litl-demo.ld-has-hint .ld-tab { visibility: visible; }
+  .litl-demo .ld-form:focus-within { box-shadow: inset 2px 0 0 var(--ld-green); }
+
+  .litl-demo .ld-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 1rem 0.9rem 1rem;
+    color: var(--ld-dim);
+    font-size: 0.8rem;
+  }
+  .litl-demo .ld-chip {
+    font-family: var(--mono-font);
+    font-size: 0.8rem;
+    padding: 0.2rem 0.7rem;
+    border: 1px solid var(--ld-line);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--ld-green);
+    transition: all 0.2s ease-in-out;
+  }
+  .litl-demo .ld-chip:hover { background: var(--ld-green); color: var(--ld-bg); border-color: var(--ld-green); }
+
+  .litl-demo .ld-noscript { margin: 0; padding: 0 1rem 1rem 1rem; color: var(--ld-dim); white-space: pre-wrap; }
+  .litl-demo pre.ld-noscript { color: var(--ld-text); }
+</style>
