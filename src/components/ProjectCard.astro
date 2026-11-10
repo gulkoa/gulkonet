@@ -1,7 +1,7 @@
 ---
 import Img from "../components/Img.astro";
 import { ArrowUpRight } from "lucide-astro";
-let {title, description, href, image, color, secondaryColor, tokens, tags, font} = Astro.props
+let {title, description, href, image, imageFit, color, secondaryColor, tokens, tags, font} = Astro.props
 
 // default tokens
 tokens = tokens || ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -22,7 +22,7 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
 <a href={href}>
 <div class="project-card" style={{backgroundColor: color}}>
   <div class="card-image-container">
-    <Img filename={image} alt={title} class="card-image" />
+    <Img filename={image} alt={title} class={imageFit === "contain" ? "card-image card-image-contain" : "card-image"} />
   </div>
 
   
@@ -112,6 +112,12 @@ const numberOfTokens = Math.ceil(2000 / averageLength);
     object-fit: cover;
     mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, transparent 100%);
     z-index: 10;
+  }
+
+  /* imageFit: contain, for a logo: all of the image is shown and nothing fades out */
+  .card-image.card-image-contain {
+    object-fit: contain;
+    mask-image: none;
   }
 
   .card-title {

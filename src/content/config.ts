@@ -14,6 +14,7 @@ const projectsCollection = defineCollection({
     tags: z.array(z.string()).optional(),
     font: z.string().optional(),
     featured: z.boolean().optional(), // false keeps a project off the home page gallery
+    imageFit: z.enum(['cover', 'contain']).optional(), // 'contain' shows the whole image without the fade, for a logo
   }),
 });
 
@@ -31,6 +32,7 @@ const blogCollection = defineCollection({
     tokens: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
     font: z.string().optional(),
+    imageFit: z.enum(['cover', 'contain']).optional(), // 'contain' shows the whole image without the fade, for a logo
   }),
 });
 

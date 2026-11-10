@@ -19,6 +19,7 @@ type PostFrontmatter = MarkdownLayoutProps<{
 	updated: string;
   font: "sans" | "serif" | "mono";
   image: string;
+  imageFit?: "cover" | "contain";
   color: string;
   secondaryColor: string;
   headerLinks: Array<{href: string, label: string}>;
@@ -32,7 +33,7 @@ const readingTime = getReadingTime(body);
 
 <Based frontmatter={frontmatter} url={url} {...otherProps}>
   <Heading title={frontmatter.title} titleClass={`font-${frontmatter.font}`} subtitle={frontmatter.description} backgroundColor={frontmatter.color} secondaryColor={frontmatter.secondaryColor}>
-    <Img filename={frontmatter.image} alt={frontmatter.title} class="header-image" loading="eager" slot="left"/>
+    <Img filename={frontmatter.image} alt={frontmatter.title} class={frontmatter.imageFit === "contain" ? "header-image header-image-contain" : "header-image"} loading="eager" slot="left"/>
     <div slot="right" style={{color: frontmatter.secondaryColor}}>
       <p>{dateVerb} on {new Date(frontmatter.created).toLocaleDateString()}</p>
       <p>{readingTime.text}</p>
@@ -58,6 +59,19 @@ const readingTime = getReadingTime(body);
       width: 100%;
     }
     
+  }
+
+  /* imageFit: contain, for a logo: all of the image is shown and nothing fades out */
+  .header-image.header-image-contain {
+    object-fit: contain;
+    mask-image: none;
+  }
+
+  @media (max-width: 800px) {
+    /* the navbar floats over the top of the header, so start the logo below it */
+    .header-image.header-image-contain {
+      margin-top: 3.25rem;
+    }
   }
 
 </style>
