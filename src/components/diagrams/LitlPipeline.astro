@@ -4,7 +4,7 @@ import Diagram from "./Diagram.astro";
 
 <Diagram
   viewBox="0 0 1000 290"
-  label="How litl runs a compressor: a data file is loaded into a DataWrapper and handed to your compress function, which returns a blob and metadata that litl stores in a .litl file; your decompress function turns the blob and metadata back into data. The Evaluator compares the original with the reconstruction and reports PSNR, SSIM, MSE, L1, compression ratio and timings."
+  label="How litl runs a compressor: a data file is loaded into a DataWrapper and handed to your compress function, which returns a blob and metadata that litl stores in a .litl file; your decompress function turns the blob and metadata back into data. The Evaluator compares the original with the reconstruction and reports PSNR, SSIM, MSE and L1, the compression ratio computed from the size of the blob, and timings."
 >
   <!-- arrow labels sit above the row -->
   <text x="176" y="40" class="dg-mono">DataWrapper</text>
@@ -37,7 +37,7 @@ import Diagram from "./Diagram.astro";
   <path d="M574,90 H630" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
   <path d="M794,90 H850" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
 
-  <!-- the evaluator reads both ends and the file size -->
+  <!-- the evaluator reads both ends, and the size of the blob that compress() returned -->
   <rect x="340" y="196" width="320" height="70" rx="10" class="dg-box"></rect>
   <text x="500" y="220" class="dg-title">Evaluator</text>
   <text x="500" y="244" class="dg-mono">PSNR · SSIM · MSE · L1 · ratio · time</text>
@@ -46,8 +46,8 @@ import Diagram from "./Diagram.astro";
   <text x="208" y="217" class="dg-sub">original</text>
   <path d="M919,122 V231 H664" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
   <text x="792" y="217" class="dg-sub">reconstruction</text>
-  <path d="M500,122 V192" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
-  <text x="512" y="158" class="dg-sub dg-start">size</text>
+  <path d="M394,94 V192" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="406" y="158" class="dg-sub dg-start">blob size</text>
 
   <!-- the caption the page passes in goes on to the figure -->
   <slot name="caption" slot="caption" />

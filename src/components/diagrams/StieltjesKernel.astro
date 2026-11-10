@@ -7,7 +7,7 @@ const tileX = (i: number) => 196 + i * 44;
 
 <Diagram
   viewBox="0 36 1000 396"
-  label="The FlashStieltjes forward kernel for one block of queries: sweep 1 goes over the key tiles to find each row's maximum score, sweeps 2 to 4 repeat the pass to run Newton steps for the pole lambda, and sweep 5 goes over the key and value tiles to accumulate the output. Only the row maximum and the pole are kept between sweeps; the N by N score matrix is never stored."
+  label="The FlashStieltjes forward kernel for one block of queries: sweep 1 goes over the key tiles to find each row's maximum score, sweeps 2 to 4 repeat the pass to run three Newton-Raphson steps for the pole lambda, and sweep 5 goes over the key and value tiles to accumulate the output. Only the row maximum and the pole are kept between sweeps; the N by N score matrix is never stored."
 >
   <!-- the query block stays put -->
   <rect x="16" y="60" width="126" height="350" rx="10" class="dg-accent"></rect>
@@ -30,8 +30,8 @@ const tileX = (i: number) => 196 + i * 44;
   <text x="628" y="105" class="dg-math">m<tspan dy="4" font-size="12">i</tspan></text>
   <text x="646" y="106" class="dg-sub dg-start">row max</text>
 
-  <!-- sweeps 2-4: Newton -->
-  <text x="196" y="192" class="dg-start"><tspan class="dg-title">Sweeps 2–4</tspan><tspan class="dg-sub" dx="10">three Newton steps to find the pole λ</tspan></text>
+  <!-- sweeps 2-4: Newton-Raphson -->
+  <text x="196" y="192" class="dg-start"><tspan class="dg-title">Sweeps 2–4</tspan><tspan class="dg-sub" dx="10">three Newton-Raphson steps to find the pole λ</tspan></text>
   {tiles.map((i) => (
     <g>
       <rect x={tileX(i)} y="208" width="36" height="36" rx="6" class="dg-tile dg-tile-2" style={`--i: ${i}`}></rect>

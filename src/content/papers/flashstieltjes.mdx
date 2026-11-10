@@ -6,7 +6,7 @@ advisors:
     url: "https://shocheen.com/"
 venue: "Undergraduate Honors Research Thesis, The Ohio State University, 2026"
 date: "2026-04-01"
-description: "Softmax is not the only way to do attention. I wrote a flash-style GPU kernel for Stieltjes attention that is 3.37× faster and 4.9× lighter on memory than plain PyTorch."
+description: "Softmax is not the only way to do attention. I wrote a flash-style GPU kernel for Stieltjes attention with a 3.37× faster forward pass on an A100 and 4.9× less peak memory than a PyTorch reference of the same attention."
 image: "papers/flashstieltjes.png"
 links:
   - label: "Knowledge Bank"
@@ -24,11 +24,11 @@ import StieltjesKernel from '../../components/diagrams/StieltjesKernel.astro'
 
 ## TL;DR
 
-FlashStieltjes is my honors thesis at Ohio State. It is a GPU kernel for **Stieltjes attention**, a drop-in replacement for softmax that weighs keys with a power law instead of an exponential. Written in Triton in the style of FlashAttention, it runs the forward pass **3.37× faster** than a PyTorch implementation on an A100 and never builds the N×N attention matrix.
+FlashStieltjes is my honors thesis at Ohio State. It is a GPU kernel for **Stieltjes attention**, which weighs keys with a power law where softmax uses an exponential. It is written in Triton in the style of FlashAttention and never builds the N×N attention matrix. On an A100 its forward pass ran **3.37× faster** (geometric mean over the benchmarked shapes) than a PyTorch reference implementation of the same attention.
 
 ## Why touch softmax
 
-Every Transformer turns attention scores into weights with softmax. It works great, but it is only one of many functions that take a list of scores and return positive numbers that add up to 1. Softmax does it with an exponential: every step down in score shrinks the weight by the same factor, so far-away keys end up with practically nothing.
+Nearly every Transformer turns attention scores into weights with softmax. But softmax is only one of many functions that take a list of scores and return positive numbers that add up to 1. It does so with an exponential: every step down in score shrinks the weight by the same factor.
 
 Stieltjes attention uses a different rule:
 
@@ -36,19 +36,19 @@ $$
 p_j = (\lambda - s_j)^{-q}
 $$
 
-Here $s_j$ is the score of key $j$, $q$ controls how sharp the attention is, and $\lambda$ (the "pole") sits just above the best score. You can think of $\lambda$ as a viewpoint: every key is weighed by how far its score is from that point, and the point slides until all weights add up to exactly 1. The weights now fall off like a power law. In this example the best keys stand out more, and the long tail of weak keys never quite drops to zero:
+Here $s_j$ is the score of key $j$, the order $q$ controls how sharp the attention is, and $\lambda$ (the "pole") sits above the best score. Every key is weighed by how far its score is from the pole, and the pole is placed so that all the weights add up to exactly 1. The weights now fall off like a power law. In this example the top two keys get more weight than under softmax, and so does the far tail: the lowest key gets about 380 times more.
 
 <SoftmaxVsStieltjes />
 
 ## The challenge
 
-Softmax is easy to compute in one go: add up the exponentials as the keys stream by and divide at the end. That is what makes FlashAttention possible. Stieltjes has no such luck. The pole $\lambda$ depends on every score in the row, and there is no formula for it, so it has to be found by trial and error.
+Softmax can be computed in a single pass over the keys: keep a running maximum and a running sum of exponentials, and divide at the end. This is the online softmax of Milakov and Gimelshein, and FlashAttention is built on it. Stieltjes attention has no such decomposition. The pole $\lambda$ depends on every score in the row at once, so it has to be found by solving an equation for each row.
 
-I use Newton's method for that. After subtracting each row's largest score, the same starting guess of 1.1 works for every row, and it converges in 2-3 steps for $q \le 4$.
+I solve it with Newton-Raphson. After subtracting each row's largest score, every row starts from the same guess of 1.1. On synthetic scores it reaches single-precision accuracy in 2-3 steps for $q \le 4$, and the kernel runs three steps by default.
 
 ## The kernel
 
-The usual way to compute attention builds a table of all N×N scores, and that table is what eats the memory at long sequences. A flash-style kernel keeps one block of queries in the GPU's fast memory and streams the keys past it in tiles instead. Since Stieltjes cannot finish in one pass, FlashStieltjes streams them five times:
+The reference way to compute attention builds a table of all N×N scores, and at long sequences that table takes up most of the memory. A flash-style kernel keeps one block of queries in the GPU's on-chip memory and streams the keys past it in tiles instead. Since Stieltjes attention cannot finish in one pass, FlashStieltjes streams them five times:
 
 <StieltjesKernel>
   <span slot="caption">One block of queries, five sweeps over the keys. Scores are recomputed on the fly in every sweep, so the only things that survive between sweeps are two numbers per row.</span>
@@ -59,12 +59,12 @@ Memory now grows with the sequence length and not with its square.
 ## Results
 
 <StatTiles items={[
-  { value: "3.37×", label: "faster forward pass than the PyTorch reference on an A100 (3.78× on an H100)" },
-  { value: "4.9×", label: "less peak memory at a typical training shape (329 MB instead of 1.6 GB)" },
-  { value: "320×", label: "less memory at 16,384 tokens (65 MB instead of 21 GB)" },
+  { value: "3.37×", label: "faster forward pass than the PyTorch reference on an A100, geometric mean (3.78× on an H100)" },
+  { value: "4.9×", label: "less peak memory at batch 4, 8 heads, 2,048 tokens (329 MB instead of 1.6 GB)" },
+  { value: "320×", label: "less memory at 16,384 tokens, batch 1 (about 65 MB instead of 21 GB)" },
 ]} />
 
-To check that swapping softmax out doesn't hurt, I trained small nanoGPT models on algorithmic tasks like finding a needle, sorting, binary search, and BFS. Stieltjes attention matched softmax within 0.03 accuracy on every one of them.
+To see what swapping softmax out does to accuracy, I trained six-layer nanoGPT models (about 23M parameters) on four algorithmic tasks: binary search, finding the maximum, BFS, and sorting. In my runs with $q$ set to 2 or 4, Stieltjes attention scored within 0.005 of softmax on every task.
 
 ## See more
 

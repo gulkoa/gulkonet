@@ -17,21 +17,19 @@ import LitlFileFormat from '../../components/diagrams/LitlFileFormat.astro'
 
 ## TL;DR
 
-litl (**L**ightweight **I**n**T**erface for **L**ossy compression) is a small Python framework I built for writing and comparing lossy compressors. You write a compressor as a single class, and litl gives you a command-line tool, a file format, and quality metrics for free. It is one `pip install litl` away.
+litl (**L**ightweight **I**n**T**erface for **L**ossy compression) is a small Python framework I built for writing and comparing lossy compressors. You write a compressor as a single class, and litl gives you a command-line tool, a file format, and quality metrics. Install it with `pip install litl`.
 
 ## Problem
 
-Every lossy compressor ships with its own scripts, its own file format, and its own idea of how to measure quality. Comparing a neural compressor against a classic one, like SIREN against TTHRESH in my [INR blog post](/blog/inr), means writing the same glue code again and again: load the data, time the run, compute PSNR and SSIM, work out the compression ratio.
-
-I wanted to write that glue once.
+Comparing a neural compressor against a classic one, like SIREN against TTHRESH in my [INR blog post](/blog/inr), takes the same steps for every compressor: load the data, time the run, compute PSNR and SSIM, work out the compression ratio. litl does those steps, so the compressor only has to compress and decompress.
 
 ## One class
 
 <LitlPipeline>
-  <span slot="caption">The two blue boxes are the only code you write. litl handles loading, saving, timing, and scoring around them.</span>
+  <span slot="caption">The two blue boxes are your code. litl handles loading, saving, timing, and scoring around them.</span>
 </LitlPipeline>
 
-A compressor only has to answer two questions: how do I turn data into a blob, and how do I get the data back? Here is a complete one that rounds every value to 8 bits:
+A compressor is a class with four methods: `about` and `blob_class` describe it, and `compress` and `decompress` do the work. Here is a complete one that rounds every value to 8 bits:
 
 ```python title="quantize.py"
 import numpy as np
@@ -66,19 +64,19 @@ class Quantize(Compressor):
         return DataWrapper(array.astype(np.float32))
 ```
 
-A blob can be an array, raw bytes, or a whole PyTorch model, so the "compressed file" can literally be a neural network.
+A blob can be an array, raw bytes, or a whole PyTorch model, so the compressed file can be a neural network.
 
 ## Try it
 
-Here is that class in a folder with some data: a smooth 64×64×64 field saved as `field.npy`. The terminal below replays what litl really prints, so go ahead and type.
+Here is that class in a folder with some data: a smooth 64×64×64 field saved as `field.npy`. The terminal below replays output recorded from litl 0.1.3, so go ahead and type.
 
 <LitlDemo />
 
-Those are recordings of real runs: 1 MB in, a 46 KB file out, at a PSNR of 53. The same four commands (`compress`, `decompress`, `evaluate`, `info`) work for any compressor, so swapping in a different one is a matter of changing one argument.
+In those recordings 1 MB goes in and a 46 KB file comes out, at a PSNR of 53. The same four commands (`compress`, `decompress`, `evaluate`, `info`) work for any compressor: to try a different one, change the first argument.
 
 ## The .litl file
 
-Whatever your compressor returns gets wrapped into a `.litl` file, together with everything needed to open it again later: which compressor made it, which version, and its settings.
+Whatever your compressor returns gets wrapped into a `.litl` file, together with what litl needs to open it again later: the litl version, which compressor made it and its version, and the metadata the compressor returned.
 
 <LitlFileFormat>
   <span slot="caption">The `field.litl` from the demo, byte by byte. The header is 13 bytes, and both the metadata and the blob get an extra Zstandard pass.</span>

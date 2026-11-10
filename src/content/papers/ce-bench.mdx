@@ -29,15 +29,15 @@ import SaeRanks from '../../components/SaeRanks.astro'
 
 ## TL;DR
 
-CE-Bench is a benchmark that tells you how interpretable a sparse autoencoder is **without asking another LLM to judge it**. [Yusen Peng](https://yusen-peng.github.io/), [Sachin Kumar](https://shocheen.com/), and I built it at Ohio State and published it at the BlackboxNLP workshop at EMNLP 2025. Its rankings agree with the LLM-judged SAEBench at over 70% Spearman correlation.
+CE-Bench is a benchmark that scores how interpretable a sparse autoencoder is **without asking another LLM to judge it**. [Yusen Peng](https://yusen-peng.github.io/), [Sachin Kumar](https://shocheen.com/), and I built it at Ohio State and published it at the BlackboxNLP workshop at EMNLP 2025. Its rankings agree with the LLM-judged SAEBench at over 70% Spearman correlation.
 
 ## Problem
 
-Sparse autoencoders (SAEs) take the messy activations inside an LLM and split them into features that are supposed to mean something. The question is how to check that they do. Most benchmarks ask a second LLM to look at each feature, explain it, and grade the explanation. That is slow and expensive, and you end up trusting one black box to grade another.
+Sparse autoencoders (SAEs) take the activations inside an LLM and split them into features that are supposed to mean something. The question is how to check that they do. Most automated evaluations rely on an external LLM to judge the features. That makes the scores non-deterministic, possibly biased, and hard to reproduce.
 
 ## Idea
 
-If a feature really means something, it should react when the meaning changes. So we built a dataset of *contrastive stories*: 5,000 pairs of short stories about 1,000 subjects picked from WikiData. Each pair tells the same subject twice, once at its extreme and once as its opposite. For "computer", one story follows a machine that cracks cryptography and maps the global weather at the same time. The other is about the "Null Device", which cannot add two numbers.
+Our hypothesis: if a feature means something, it should react when the meaning changes. So we built a dataset of *contrastive stories*: 5,000 pairs of short stories about 1,000 subjects picked from WikiData. Each pair tells the same subject twice, once at its extreme and once as its opposite. For "computer", one story follows a machine that cracks cryptography and maps the global weather at the same time. The other is about the "Null Device", which cannot add two numbers.
 
 ## How it works
 
@@ -51,17 +51,17 @@ The **contrastive score** is the biggest gap between the two stories. Is there a
 
 The **independence score** is the biggest gap between this pair and the average over the whole dataset. Is there a feature that cares about this subject in particular?
 
-Add the two up, subtract a small penalty based on the SAE's sparsity, and you have one interpretability score. No prompts and no judge, just arithmetic on activations.
+Add the two up, subtract a penalty based on the SAE's sparsity, and you have one interpretability score. No judge and no prompts at evaluation time, only arithmetic on activations.
 
 ## Results
 
 <StatTiles items={[
-  { value: "70.12%", label: "ranking agreement with SAEBench using the two scores alone" },
-  { value: "77.30%", label: "agreement once the score also accounts for sparsity" },
+  { value: "70.12%", label: "of SAE pairs ranked in the same order as SAEBench, using the two scores alone" },
+  { value: "77.30%", label: "of pairs once the score also accounts for sparsity" },
   { value: "0", label: "judge LLMs involved" },
 ]} />
 
-Those numbers come from 48 pretrained SAEs that SAEBench had already graded. We also used CE-Bench to compare SAEs with each other: top-k and p-anneal architectures came out as the most interpretable, wider SAEs beat narrower ones, and the middle layers of the LLM gave the clearest features.
+Those numbers come from 48 pretrained SAEs that SAEBench had already graded. We also used CE-Bench to compare SAEs with each other. The clearest trend is width: with the architecture and the layer held fixed, 65k-wide SAEs scored above 16k-wide ones, and those above 4k-wide ones, at every sparsity level.
 
 Here are the CE-Bench scores of 36 of those SAEs next to their autointerp scores from SAEBench: six architectures at six sparsity levels each, all 65k wide and reading layer 12 of Gemma-2-2B. Click a column to sort by it.
 
