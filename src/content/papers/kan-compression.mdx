@@ -47,10 +47,6 @@ The best KAN run squeezed the data **8,615 times**, down to 204 KB, at a PSNR of
 
 Against its own MLP twin it is a trade: the one fVSRN run with complete metrics is almost half the size (117 KB) for 0.9 less PSNR.
 
-## Take it with a grain of salt
-
-This is a snapshot and not a verdict. A lot of the neural runs crashed or never finished, so TTHRESH has 21 points on this chart, the KAN has 6, and SIREN and fVSRN have one each. With more tuning the picture could change.
-
 ## What came out of it
 
 The SIREN and TTHRESH numbers in my [INR blog post](/blog/inr) come from this benchmark. And the benchmarking code I wrote for it, one interface for neural and classic compressors with the metrics built in, later turned into [litl](/projects/litl).
