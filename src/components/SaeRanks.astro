@@ -1,0 +1,183 @@
+---
+// How CE-Bench and SAEBench rank the 36 SAEs of the paper's architecture experiment.
+// Scores come from the CE-Bench repository (src/data/ce-bench-sae-ranks.json); ranks are computed here.
+import data from "../data/ce-bench-sae-ranks.json";
+
+// rank 1 is the highest score
+const ranked = (scores: number[]) => {
+  const order = scores.map((score, i) => ({ score, i })).sort((a, b) => b.score - a.score);
+  const ranks = new Array<number>(scores.length);
+  order.forEach(({ i }, position) => { ranks[i] = position + 1; });
+  return ranks;
+};
+
+const saes = data.saes.map((sae) => ({ ...sae, ceBench: sae.contrastive + sae.independence - data.alpha * sae.l0 }));
+const ceRanks = ranked(saes.map((sae) => sae.ceBench));
+const saeBenchRanks = ranked(saes.map((sae) => sae.saebench));
+const rows = saes
+  .map((sae, i) => ({ ...sae, ceRank: ceRanks[i], saeBenchRank: saeBenchRanks[i] }))
+  .sort((a, b) => a.ceRank - b.ceRank);
+
+const columns = [
+  { key: "ceRank", label: "CE-Bench rank", numeric: true },
+  { key: "architecture", label: "Architecture", numeric: false },
+  { key: "l0", label: "L0", numeric: true },
+  { key: "ceBench", label: "CE-Bench score", numeric: true },
+  { key: "saebench", label: "SAEBench score", numeric: true },
+  { key: "saeBenchRank", label: "SAEBench rank", numeric: true },
+];
+---
+
+<figure class="sae-ranks">
+  <div class="sr-scroll" tabindex="0" role="region" aria-label="Ranking of 36 sparse autoencoders, scrollable">
+    <table>
+      <thead>
+        <tr>
+          {columns.map((column) => (
+            <th scope="col" class={column.numeric ? "sr-num" : ""} aria-sort={column.key === "ceRank" ? "ascending" : "none"}>
+              <button type="button" data-key={column.key} data-numeric={column.numeric ? "true" : "false"}>{column.label}<span class="sr-arrow" aria-hidden="true"></span></button>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr data-ce-rank={row.ceRank} data-architecture={row.architecture} data-l0={row.l0} data-ce-bench={row.ceBench} data-saebench={row.saebench} data-sae-bench-rank={row.saeBenchRank}>
+            <td class="sr-num sr-rank">{row.ceRank}</td>
+            <td>{row.architecture}</td>
+            <td class="sr-num">{Math.round(row.l0)}</td>
+            <td class="sr-num">{row.ceBench.toFixed(1)}</td>
+            <td class="sr-num">{row.saebench.toFixed(4)}</td>
+            <td class="sr-num sr-rank">{row.saeBenchRank}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <figcaption>
+    <slot />
+  </figcaption>
+</figure>
+
+<script>
+  // click a column header to sort by it, click again to flip the order
+  document.querySelectorAll<HTMLElement>(".sae-ranks").forEach((root) => {
+    const body = root.querySelector("tbody");
+    const headers = [...root.querySelectorAll<HTMLTableCellElement>("thead th")];
+    if (!body) return;
+
+    headers.forEach((header) => {
+      const button = header.querySelector("button");
+      if (!button) return;
+      button.addEventListener("click", () => {
+        const key = button.dataset.key || "";
+        const numeric = button.dataset.numeric === "true";
+        const ascending = header.getAttribute("aria-sort") !== "ascending";
+        const value = (row: HTMLElement) => row.dataset[key] ?? "";
+
+        const sorted = [...body.querySelectorAll<HTMLElement>("tr")].sort((a, b) => {
+          const order = numeric ? Number(value(a)) - Number(value(b)) : value(a).localeCompare(value(b));
+          // rows that tie keep their CE-Bench order
+          return (ascending ? order : -order) || Number(a.dataset.ceRank) - Number(b.dataset.ceRank);
+        });
+        body.append(...sorted);
+        headers.forEach((h) => h.setAttribute("aria-sort", h === header ? (ascending ? "ascending" : "descending") : "none"));
+      });
+    });
+  });
+</script>
+
+<style>
+  .sae-ranks {
+    margin: 2rem 0;
+  }
+  .sr-scroll {
+    max-height: 30rem;
+    overflow: auto;
+    border: rgb(230, 230, 230) 1px solid;
+    border-radius: 16px;
+  }
+  .sr-scroll:focus-visible {
+    outline: 2px solid var(--active-color);
+    outline-offset: 2px;
+  }
+
+  table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+    font-size: 1rem;
+  }
+  th,
+  td {
+    border: none;
+    border-bottom: rgb(238, 238, 238) 1px solid;
+    padding: 0.5rem 0.9rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+  tbody tr:hover td {
+    background-color: #f6f7f9;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0;
+    background-color: white;
+    border-bottom: rgb(210, 210, 210) 1px solid;
+    font-weight: 400;
+  }
+  thead button {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: none;
+    color: #555;
+    font-size: 0.9rem;
+    text-align: inherit;
+    white-space: nowrap;
+    transition: color 0.2s ease-in-out;
+  }
+  thead button:hover,
+  th[aria-sort="ascending"] button,
+  th[aria-sort="descending"] button {
+    color: black;
+  }
+  .sr-arrow::after {
+    content: "↕";
+    display: inline-block;
+    width: 1em;
+    margin-left: 0.3rem;
+    color: #bbb;
+  }
+  th[aria-sort="ascending"] .sr-arrow::after { content: "↑"; color: var(--active-color); }
+  th[aria-sort="descending"] .sr-arrow::after { content: "↓"; color: var(--active-color); }
+
+  .sr-num {
+    text-align: right;
+    font-family: var(--mono-font);
+    font-size: 0.95rem;
+  }
+  thead th.sr-num button {
+    font-family: var(--general-font);
+  }
+  .sr-rank {
+    font-weight: 700;
+  }
+
+  figcaption :global(p) {
+    margin: 0;
+  }
+  figcaption {
+    margin: 0.9rem auto 0 auto;
+    max-width: 75ch;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #5b5f66;
+  }
+</style>
