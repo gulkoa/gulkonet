@@ -1,0 +1,122 @@
+---
+title: litl
+description: A lightweight Python framework for writing and benchmarking lossy compressors. You bring one class, litl brings the CLI, the file format, and the metrics.
+created: 2025-05-24 est
+image: projects/litl/hero.png
+color: "#0d1117"
+secondaryColor: "#8ae99c"
+tokens: ["compress ", "decompress ", "evaluate ", "info ", "psnr ", "ssim ", ".litl "]
+tags: ["python", "data compression", "research"]
+font: 'mono'
+---
+import { Github, Package } from 'lucide-astro'
+import LinkCard from '../../components/LinkCard.astro'
+import LitlPipeline from '../../components/diagrams/LitlPipeline.astro'
+import LitlFileFormat from '../../components/diagrams/LitlFileFormat.astro'
+
+## TL;DR
+
+litl (**L**ightweight **I**n**T**erface for **L**ossy compression) is a small Python framework I built for writing and comparing lossy compressors. You write a compressor as a single class, and litl gives you a command-line tool, a file format, and quality metrics for free. It is one `pip install litl` away.
+
+## Problem
+
+Every lossy compressor ships with its own scripts, its own file format, and its own idea of how to measure quality. Comparing a neural compressor against a classic one, like SIREN against TTHRESH in my [INR blog post](/blog/inr), means writing the same glue code again and again: load the data, time the run, compute PSNR and SSIM, work out the compression ratio.
+
+I wanted to write that glue once.
+
+## One class
+
+<LitlPipeline>
+  <span slot="caption">The two blue boxes are the only code you write. litl handles loading, saving, timing, and scoring around them.</span>
+</LitlPipeline>
+
+A compressor only has to answer two questions: how do I turn data into a blob, and how do I get the data back? Here is a complete one that rounds every value to 8 bits:
+
+```python title="quantize.py"
+import numpy as np
+
+from litl import DataWrapper
+from litl.blobs import ArrayBlob
+from litl.compressors import Compressor, CompressorAbout
+
+
+class Quantize(Compressor):
+
+    @classmethod
+    def about(cls):
+        return CompressorAbout(name="Quantize", description="Rounds every value to 8 bits", version="1.0.0")
+
+    @classmethod
+    def blob_class(cls):
+        return ArrayBlob
+
+    @classmethod
+    def compress(cls, data: DataWrapper, config: dict):
+        array = data.numpy()
+        low, high = float(array.min()), float(array.max())
+        step = (high - low) / 255
+
+        quantized = np.round((array - low) / step).astype(np.uint8)
+        return ArrayBlob(quantized), {"min": low, "step": step}
+
+    @classmethod
+    def decompress(cls, blob: ArrayBlob, meta: dict):
+        array = blob.array * meta["step"] + meta["min"]
+        return DataWrapper(array.astype(np.float32))
+```
+
+A blob can be an array, raw bytes, or a whole PyTorch model, so the "compressed file" can literally be a neural network.
+
+## Batteries included
+
+Point litl at that class and some data, and it runs the whole loop: compress, decompress, compare.
+
+```text
+$ litl evaluate quantize.py:Quantize field.npy config.json -c field.litl
+┓• ┓
+┃┓╋┃
+┗┗┗┗
+Running litl evaluate
+Compressed data saved to field.litl
+Metrics:
+{
+    'original_size': 1048704,
+    'compressed_size': 262272,
+    'compression_ratio': 3.998535871156662,
+    'compression_time': 0.0008983612060546875,
+    'io_time': 0.00011491775512695312,
+    'total_litl_size': 47378,
+    'decompression_time': 0.0017826557159423828,
+    'mse': 1.1364933925506193e-05,
+    'psnr': 52.96345520019531,
+    'ssim': 0.9994416832923889,
+    'l1': 0.002910611219704151
+}
+```
+
+That is a real run on a smooth 64×64×64 field: 1 MB in, a 47 KB file out, at a PSNR of 53. The same four commands (`compress`, `decompress`, `evaluate`, `info`) work for any compressor, so swapping in a different one is a matter of changing one argument.
+
+## The .litl file
+
+Whatever your compressor returns gets wrapped into a `.litl` file, together with everything needed to open it again later: which compressor made it, which version, and its settings.
+
+<LitlFileFormat>
+  <span slot="caption">The file from the run above, byte by byte. The header is 13 bytes, and both the metadata and the blob get an extra Zstandard pass.</span>
+</LitlFileFormat>
+
+```text
+$ litl info field.litl
+File field.litl was compressed with quantize.py:Quantize v1.0.0 using litl v0.1.3
+Metadata:
+{'min': -1.499533772468567, 'step': 0.011761049195831897}
+```
+
+## See more
+
+<LinkCard title="Source code" link="https://github.com/GulkoA/litl">
+  <Github color="black" slot="icon"/>
+</LinkCard>
+
+<LinkCard title="litl on PyPI" link="https://pypi.org/project/litl/">
+  <Package color="black" slot="icon"/>
+</LinkCard>

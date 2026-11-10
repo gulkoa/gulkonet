@@ -1,0 +1,51 @@
+---
+import Diagram from "./Diagram.astro";
+---
+
+<Diagram
+  viewBox="0 0 1000 290"
+  label="How litl runs a compressor: a data file is loaded into a DataWrapper and handed to your compress function, which returns a blob and metadata that litl stores in a .litl file; your decompress function turns the blob and metadata back into data. The Evaluator compares the original with the reconstruction and reports PSNR, SSIM, MSE, L1, compression ratio and timings."
+>
+  <!-- arrow labels sit above the row -->
+  <text x="176" y="40" class="dg-mono">DataWrapper</text>
+  <text x="396" y="40" class="dg-mono">Blob, meta</text>
+  <text x="604" y="40" class="dg-mono">Blob, meta</text>
+  <text x="824" y="40" class="dg-mono">DataWrapper</text>
+
+  <rect x="16" y="58" width="130" height="64" rx="10" class="dg-soft"></rect>
+  <text x="81" y="81" class="dg-mono" font-size="14">data.npy</text>
+  <text x="81" y="103" class="dg-sub">the original</text>
+
+  <rect x="206" y="58" width="160" height="64" rx="10" class="dg-accent"></rect>
+  <text x="286" y="81" class="dg-mono" font-size="14">compress()</text>
+  <text x="286" y="103" class="dg-sub">your code</text>
+
+  <rect x="426" y="58" width="148" height="64" rx="10" class="dg-soft"></rect>
+  <text x="500" y="81" class="dg-mono" font-size="14">result.litl</text>
+  <text x="500" y="103" class="dg-sub">one file on disk</text>
+
+  <rect x="634" y="58" width="160" height="64" rx="10" class="dg-accent"></rect>
+  <text x="714" y="81" class="dg-mono" font-size="14">decompress()</text>
+  <text x="714" y="103" class="dg-sub">your code</text>
+
+  <rect x="854" y="58" width="130" height="64" rx="10" class="dg-soft"></rect>
+  <text x="919" y="81" class="dg-mono" font-size="14">restored.npy</text>
+  <text x="919" y="103" class="dg-sub">the reconstruction</text>
+
+  <path d="M146,90 H202" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M366,90 H422" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M574,90 H630" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+  <path d="M794,90 H850" class="dg-line dg-flow" marker-end="url(#dg-arrow)"></path>
+
+  <!-- the evaluator reads both ends and the file size -->
+  <rect x="340" y="196" width="320" height="70" rx="10" class="dg-box"></rect>
+  <text x="500" y="220" class="dg-title">Evaluator</text>
+  <text x="500" y="244" class="dg-mono">PSNR · SSIM · MSE · L1 · ratio · time</text>
+
+  <path d="M81,122 V231 H336" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="208" y="217" class="dg-sub">original</text>
+  <path d="M919,122 V231 H664" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="792" y="217" class="dg-sub">reconstruction</text>
+  <path d="M500,122 V192" class="dg-line-muted" marker-end="url(#dg-arrow-muted)"></path>
+  <text x="512" y="158" class="dg-sub dg-start">size</text>
+</Diagram>
