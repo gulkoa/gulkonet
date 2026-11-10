@@ -14,13 +14,13 @@ const cellX = (i: number) => 516 + i * 12;
   label="CE-Bench pipeline: two contrastive stories about the same subject go through a frozen LLM and a sparse autoencoder; the mean feature activations of the two stories are compared to get a contrastive score and an independence score, which are combined with the autoencoder's sparsity into one interpretability score."
 >
   <!-- stories -->
-  <text x="16" y="56" class="dg-sub dg-start">same subject, opposite takes</text>
+  <text x="16" y="56" class="dg-sub dg-start">same subject, opposite extremes</text>
   <rect x="16" y="75" width="140" height="70" rx="10" class="dg-soft"></rect>
   <text x="86" y="101" class="dg-title">Story 1</text>
-  <text x="86" y="123" class="dg-sub">breaks every rule</text>
+  <text x="86" y="123" class="dg-sub">a brilliant computer</text>
   <rect x="16" y="205" width="140" height="70" rx="10" class="dg-soft"></rect>
   <text x="86" y="231" class="dg-title">Story 2</text>
-  <text x="86" y="253" class="dg-sub">follows every rule</text>
+  <text x="86" y="253" class="dg-sub">a useless one</text>
 
   <!-- frozen model -->
   <text x="306" y="56" class="dg-sub">both frozen</text>
@@ -64,6 +64,7 @@ const cellX = (i: number) => 516 + i * 12;
   <rect x="648" y="205" width="170" height="70" rx="10" class="dg-box"></rect>
   <text x="733" y="230" class="dg-title">Independence score</text>
   <text x="733" y="254" class="dg-mono">max |I − I_avg|</text>
+  <text x="618" y="175" class="dg-mono dg-end" font-size="11.5">I = V1 + V2</text>
 
   <!-- dataset-wide mean feeds independence -->
   <rect x="506" y="298" width="116" height="50" rx="10" class="dg-soft"></rect>

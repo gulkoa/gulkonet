@@ -45,7 +45,8 @@ const papersCollection = defineCollection({
     venue: z.string(),
     date: z.string(), // publication date, used for sorting
     description: z.string(),
-    links: z.array(z.object({ label: z.string(), href: z.string() })).min(1),
+    links: z.array(z.object({ label: z.string(), href: z.string() })).default([]),
+    image: z.string().optional(), // social card in src/assets, the portrait is used without one
   }),
 });
 

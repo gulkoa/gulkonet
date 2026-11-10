@@ -5,13 +5,16 @@ note: "Advised by Sachin Kumar"
 venue: "Undergraduate Honors Research Thesis, The Ohio State University, 2026"
 date: "2026-04-01"
 description: "Softmax is not the only way to do attention. I wrote a flash-style GPU kernel for Stieltjes attention that is 3.37× faster and 4.9× lighter on memory than plain PyTorch."
+image: "papers/flashstieltjes.png"
 links:
+  - label: "Knowledge Bank"
+    href: "https://kb.osu.edu/items/d990891a-309b-4071-be71-ffbf3c3e2598"
   - label: "PDF"
     href: "/papers/flashstieltjes-thesis.pdf"
   - label: "Code"
     href: "https://github.com/gulkoa/stieltjes-triton"
 ---
-import { Github, FileText } from 'lucide-astro'
+import { Github, FileText, Landmark } from 'lucide-astro'
 import LinkCard from '../../components/LinkCard.astro'
 import StatTiles from '../../components/StatTiles.astro'
 import SoftmaxVsStieltjes from '../../components/diagrams/SoftmaxVsStieltjes.astro'
@@ -75,6 +78,10 @@ FlashStieltjes is one piece of a larger ongoing project on Stieltjes attention w
 
 <LinkCard title="Read the thesis" link="/papers/flashstieltjes-thesis.pdf">
   <FileText color="black" slot="icon"/>
+</LinkCard>
+
+<LinkCard title="Knowledge Bank" link="https://kb.osu.edu/items/d990891a-309b-4071-be71-ffbf3c3e2598">
+  <Landmark color="black" slot="icon"/>
 </LinkCard>
 
 <LinkCard title="Source code" link="https://github.com/gulkoa/stieltjes-triton">

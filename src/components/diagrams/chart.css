@@ -1,0 +1,49 @@
+/* Shared chrome of the charts: axes, labels, hover layer, tooltip and table view */
+.wchart {
+  --chart-grid: #e6e7ea;
+  --chart-axis: #c3c6cc;
+  --chart-muted: #6b6f76;
+}
+.wchart .wchart-frame {
+  position: relative;
+  min-width: 560px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.wchart svg { overflow: visible; }
+.wchart .wchart-grid { stroke: var(--chart-grid); stroke-width: 1; }
+.wchart .wchart-axis { stroke: var(--chart-axis); stroke-width: 1; }
+.wchart .wchart-tick { font-size: 12.5px; fill: var(--chart-muted); font-variant-numeric: tabular-nums; }
+.wchart .wchart-axis-label { font-size: 13px; fill: var(--chart-muted); }
+.wchart .wchart-label { font-size: 13.5px; fill: var(--dg-ink); }
+.wchart .wchart-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wchart .wchart-end { stroke: white; stroke-width: 2; }
+.wchart .wchart-cross { stroke: var(--chart-axis); stroke-width: 1; }
+.wchart .wchart-hit { fill: transparent; cursor: crosshair; outline: none; }
+.wchart .wchart-hit:focus-visible { stroke: var(--dg-accent); stroke-width: 1.5; }
+.wchart .wchart-tip {
+  position: absolute;
+  pointer-events: none;
+  background: white;
+  border: 1px solid rgba(11, 11, 11, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  z-index: 5;
+}
+.wchart .wchart-tip-head { color: var(--chart-muted); }
+.wchart .wchart-tip-row { display: flex; align-items: center; gap: 0.45rem; }
+.wchart .wchart-tip-row span:last-child { color: var(--chart-muted); }
+.wchart .wchart-key { width: 14px; height: 2px; border-radius: 1px; }
+.wchart .wchart-table {
+  width: fit-content;
+  margin: 0.6rem auto 0 auto;
+  font-size: 0.95rem;
+  color: var(--chart-muted);
+}
+.wchart .wchart-table summary { cursor: pointer; text-align: center; }
+.wchart .wchart-table table { margin-top: 0.5rem; color: var(--dg-ink); font-variant-numeric: tabular-nums; }
+.wchart .wchart-table td { text-align: right; }

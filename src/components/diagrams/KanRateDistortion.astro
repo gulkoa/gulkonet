@@ -1,0 +1,190 @@
+---
+// Quality vs size for every compressor run on the hurricane dataset. One hue for the KAN, neutrals for the rest.
+import "./diagram.css";
+import "./chart.css";
+import bench from "../../data/kan-compression-bench.json";
+
+interface Run { compressor: string; ratio: number; psnr: number; ssim: number; bytes: number }
+
+const names: Record<string, string> = { fVSRKAN: "KAN (fVSRKAN)", fVSRN: "fVSRN", SIREN: "SIREN", TTHRESH: "TTHRESH" };
+const runs = (bench.runs as Run[]).slice().sort((a, b) => a.ratio - b.ratio);
+const of = (compressor: string) => runs.filter((r) => r.compressor === compressor);
+
+// geometry
+const W = 760, H = 430;
+const x0 = 64, x1 = 610, y0 = 52, y1 = 360;
+const minRatio = 1000, maxRatio = 60000, minPsnr = 30, maxPsnr = 40;
+const sx = (ratio: number) => x0 + ((Math.log10(ratio) - Math.log10(minRatio)) / (Math.log10(maxRatio) - Math.log10(minRatio))) * (x1 - x0);
+const sy = (psnr: number) => y1 - ((psnr - minPsnr) / (maxPsnr - minPsnr)) * (y1 - y0);
+
+const xTicks = [1000, 2000, 5000, 10000, 20000, 50000];
+const yTicks = [30, 32, 34, 36, 38, 40];
+
+// TTHRESH's frontier: the best quality it reached at each size or smaller
+let best = -Infinity;
+const frontier = of("TTHRESH").slice().reverse().filter((r) => (r.psnr > best ? ((best = r.psnr), true) : false)).reverse();
+const frontierPath = frontier.map((r, i) => `${i ? "L" : "M"}${sx(r.ratio).toFixed(1)},${sy(r.psnr).toFixed(1)}`).join(" ");
+
+const kan = of("fVSRKAN");
+const kanBest = kan.reduce((a, b) => (b.ratio > 5000 && b.psnr > a.psnr ? b : a), kan.filter((r) => r.ratio > 5000)[0]);
+const siren = of("SIREN")[0];
+const fvsrn = of("fVSRN")[0];
+const tthreshLast = of("TTHRESH").slice(-1)[0];
+
+const times = (ratio: number) => `${Math.round(ratio).toLocaleString("en-US")}×`;
+const kb = (bytes: number) => `${Math.round(bytes / 1024).toLocaleString("en-US")} KB`;
+
+const points = runs.map((r) => ({ ...r, name: names[r.compressor], x: sx(r.ratio), y: sy(r.psnr), size: kb(r.bytes), times: times(r.ratio) }));
+const tableRows = [siren, fvsrn, ...kan.slice().reverse(), ...of("TTHRESH").filter((_, i) => i % 4 === 0)];
+---
+
+<figure class="diagram wchart rdchart" data-points={JSON.stringify(points)} data-width={W}>
+  <div class="diagram-scroll">
+    <div class="wchart-frame">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Reconstruction quality against compression ratio for four compressors on the Hurricane Isabel dataset. The best KAN run reaches PSNR ${kanBest.psnr} at ${times(kanBest.ratio)}, on TTHRESH's curve. SIREN is both smaller and better at PSNR ${siren.psnr} and ${times(siren.ratio)}.`} xmlns="http://www.w3.org/2000/svg">
+        <!-- grid and axes -->
+        {yTicks.map((p) => (
+          <g>
+            <line x1={x0} x2={x1} y1={sy(p)} y2={sy(p)} class={p === minPsnr ? "wchart-axis" : "wchart-grid"}></line>
+            <text x={x0 - 10} y={sy(p)} class="wchart-tick dg-end">{p}</text>
+          </g>
+        ))}
+        {xTicks.map((r) => (
+          <text x={sx(r)} y={y1 + 18} class="wchart-tick">{times(r)}</text>
+        ))}
+        <text x={(x0 + x1) / 2} y={H - 16} class="wchart-axis-label">compression ratio, log scale (further right is a smaller file)</text>
+        <text x={x0 - 48} y={y0 - 34} class="wchart-axis-label dg-start">PSNR (higher is better)</text>
+
+        <!-- legend -->
+        <g transform={`translate(${x0 + 190}, ${y0 - 34})`}>
+          <circle cx="6" cy="0" r="5.5" class="rd-kan"></circle>
+          <text x="18" y="0" class="wchart-label dg-start">KAN (fVSRKAN)</text>
+          <rect x="140" y="-5" width="10" height="10" class="rd-ink"></rect>
+          <text x="158" y="0" class="wchart-label dg-start">fVSRN</text>
+          <rect x="223" y="-5" width="10" height="10" transform="rotate(45 228 0)" class="rd-ink"></rect>
+          <text x="242" y="0" class="wchart-label dg-start">SIREN</text>
+          <circle cx="308" cy="0" r="3.5" class="rd-gray"></circle>
+          <text x="318" y="0" class="wchart-label dg-start">TTHRESH</text>
+        </g>
+
+        <!-- TTHRESH: every run, and the frontier through the best ones -->
+        <path d={frontierPath} class="rd-frontier"></path>
+        {of("TTHRESH").map((r) => <circle cx={sx(r.ratio)} cy={sy(r.psnr)} r="3.5" class="rd-gray"></circle>)}
+        <text x={sx(tthreshLast.ratio) + 6} y={sy(tthreshLast.psnr) - 34} class="wchart-label dg-end">TTHRESH</text>
+
+        <!-- neural baselines -->
+        <rect x={sx(fvsrn.ratio) - 5.5} y={sy(fvsrn.psnr) - 5.5} width="11" height="11" class="rd-ink rd-ring"></rect>
+        <text x={sx(fvsrn.ratio) + 14} y={sy(fvsrn.psnr) + 1} class="wchart-label dg-start">fVSRN</text>
+        <rect x={sx(siren.ratio) - 5.5} y={sy(siren.psnr) - 5.5} width="11" height="11" transform={`rotate(45 ${sx(siren.ratio)} ${sy(siren.psnr)})`} class="rd-ink rd-ring"></rect>
+        <text x={sx(siren.ratio) + 15} y={sy(siren.psnr) + 1} class="wchart-label dg-start">SIREN</text>
+
+        <!-- the KAN runs -->
+        {kan.map((r) => <circle cx={sx(r.ratio)} cy={sy(r.psnr)} r="5.5" class="rd-kan rd-ring"></circle>)}
+        <path d={`M${sx(kanBest.ratio) + 2},${sy(kanBest.psnr) - 9} L${sx(kanBest.ratio) + 16},${sy(kanBest.psnr) - 46}`} class="rd-leader"></path>
+        <text x={sx(kanBest.ratio) + 18} y={sy(kanBest.psnr) - 56} class="wchart-label">best KAN run</text>
+
+        <!-- hover layer -->
+        <circle class="rd-focus" r="10" visibility="hidden"></circle>
+        <rect class="wchart-hit" x={x0 - 8} y={y0 - 8} width={x1 - x0 + 16} height={y1 - y0 + 16} tabindex="0" role="slider" aria-label="Step through the runs from the largest file to the smallest" aria-valuemin="0" aria-valuemax={points.length - 1} aria-valuenow="0"></rect>
+      </svg>
+      <div class="wchart-tip" hidden>
+        <div class="wchart-tip-head"></div>
+        <div class="wchart-tip-row"><strong data-value="psnr"></strong><span>PSNR</span></div>
+        <div class="wchart-tip-row"><strong data-value="ssim"></strong><span>SSIM</span></div>
+        <div class="wchart-tip-row"><strong data-value="size"></strong><span>file</span></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>
+    Every run that got past 1,000× and a PSNR of 30 on 20 time steps of Hurricane Isabel (1.8 GB). The best KAN run lands right on TTHRESH's curve, and SIREN beats both with a smaller file and better quality.
+  </figcaption>
+  <details class="wchart-table">
+    <summary>Data table</summary>
+    <table>
+      <thead><tr><th>Compressor</th><th>Ratio</th><th>File</th><th>PSNR</th><th>SSIM</th></tr></thead>
+      <tbody>
+        {tableRows.map((r) => (
+          <tr><td style="text-align: left">{names[r.compressor]}</td><td>{times(r.ratio)}</td><td>{kb(r.bytes)}</td><td>{r.psnr.toFixed(2)}</td><td>{r.ssim.toFixed(3)}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </details>
+</figure>
+
+<script>
+  interface Point { name: string; x: number; y: number; psnr: number; ssim: number; size: string; times: string }
+
+  document.querySelectorAll<HTMLElement>(".rdchart").forEach((root) => {
+    const points: Point[] = JSON.parse(root.dataset.points || "[]");
+    const W = Number(root.dataset.width);
+    const svg = root.querySelector("svg") as SVGSVGElement;
+    const frame = root.querySelector(".wchart-frame") as HTMLElement;
+    const hit = root.querySelector(".wchart-hit") as SVGRectElement;
+    const focus = root.querySelector(".rd-focus") as SVGCircleElement;
+    const tip = root.querySelector(".wchart-tip") as HTMLElement;
+    if (!svg || !hit || !tip || !points.length) return;
+    let index = 0;
+
+    const show = (i: number) => {
+      index = Math.max(0, Math.min(points.length - 1, i));
+      const p = points[index];
+      focus.setAttribute("cx", String(p.x));
+      focus.setAttribute("cy", String(p.y));
+      focus.setAttribute("visibility", "visible");
+      (tip.querySelector(".wchart-tip-head") as HTMLElement).textContent = `${p.name} at ${p.times}`;
+      (tip.querySelector('[data-value="psnr"]') as HTMLElement).textContent = p.psnr.toFixed(2);
+      (tip.querySelector('[data-value="ssim"]') as HTMLElement).textContent = p.ssim.toFixed(3);
+      (tip.querySelector('[data-value="size"]') as HTMLElement).textContent = p.size;
+      hit.setAttribute("aria-valuenow", String(index));
+      hit.setAttribute("aria-valuetext", `${p.name} at ${p.times}: PSNR ${p.psnr.toFixed(2)}, SSIM ${p.ssim.toFixed(3)}, ${p.size}`);
+
+      tip.hidden = false;
+      const scale = svg.getBoundingClientRect().width / W;
+      const left = p.x * scale;
+      const flip = left + tip.offsetWidth + 24 > frame.clientWidth;
+      tip.style.left = `${flip ? left - tip.offsetWidth - 16 : left + 16}px`;
+      tip.style.top = `${Math.max(0, p.y * scale - tip.offsetHeight - 12)}px`;
+    };
+    const hide = () => {
+      focus.setAttribute("visibility", "hidden");
+      tip.hidden = true;
+    };
+
+    // the pointer only has to be closest to a run, not on top of it
+    hit.addEventListener("pointermove", (e) => {
+      const rect = svg.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * W;
+      const y = ((e.clientY - rect.top) / rect.width) * W;
+      let nearest = 0, distance = Infinity;
+      points.forEach((p, i) => {
+        const d = (p.x - x) ** 2 + (p.y - y) ** 2;
+        if (d < distance) { distance = d; nearest = i; }
+      });
+      show(nearest);
+    });
+    hit.addEventListener("pointerleave", () => { if (document.activeElement !== hit) hide(); });
+    hit.addEventListener("focus", () => show(index));
+    hit.addEventListener("blur", hide);
+    hit.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { show(index + 1); e.preventDefault(); }
+      else if (e.key === "ArrowLeft") { show(index - 1); e.preventDefault(); }
+      else if (e.key === "Home") { show(0); e.preventDefault(); }
+      else if (e.key === "End") { show(points.length - 1); e.preventDefault(); }
+    });
+  });
+</script>
+
+<style is:global>
+  .rdchart {
+    --rd-kan: #2b65dd;
+    --rd-gray: #9a9ea6;
+  }
+  .rdchart .rd-kan { fill: var(--rd-kan); }
+  .rdchart .rd-ink { fill: var(--dg-ink); }
+  .rdchart .rd-gray { fill: var(--rd-gray); }
+  .rdchart .rd-ring { stroke: white; stroke-width: 2; }
+  .rdchart .rd-frontier { fill: none; stroke: var(--rd-gray); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; opacity: 0.55; }
+  .rdchart .rd-leader { fill: none; stroke: var(--chart-muted); stroke-width: 1; }
+  .rdchart .rd-focus { fill: none; stroke: var(--dg-ink); stroke-width: 1.5; }
+  .rdchart .wchart-tip-row strong { min-width: 3.2rem; }
+</style>

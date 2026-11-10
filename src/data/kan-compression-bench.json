@@ -1,0 +1,217 @@
+{
+ "dataset": {
+  "name": "Hurricane Isabel",
+  "shape": [
+   20,
+   90,
+   500,
+   500
+  ],
+  "bytes": 1800000128
+ },
+ "runs": [
+  {
+   "compressor": "SIREN",
+   "ratio": 22182.2,
+   "psnr": 36.5,
+   "ssim": 0.9611,
+   "bytes": 81146
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 2385.7,
+   "psnr": 38.34,
+   "ssim": 0.9536,
+   "bytes": 754482
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 2506.9,
+   "psnr": 38.21,
+   "ssim": 0.9528,
+   "bytes": 718018
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 2803.6,
+   "psnr": 37.94,
+   "ssim": 0.9517,
+   "bytes": 642042
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 5832.2,
+   "psnr": 36.47,
+   "ssim": 0.9406,
+   "bytes": 308634
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 5981.1,
+   "psnr": 36.39,
+   "ssim": 0.9406,
+   "bytes": 300946
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 6272.8,
+   "psnr": 36.23,
+   "ssim": 0.94,
+   "bytes": 286954
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 6507.7,
+   "psnr": 36.12,
+   "ssim": 0.9393,
+   "bytes": 276594
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 7581.3,
+   "psnr": 35.66,
+   "ssim": 0.9338,
+   "bytes": 237426
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 7783.8,
+   "psnr": 35.59,
+   "ssim": 0.9327,
+   "bytes": 231250
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 7828.7,
+   "psnr": 35.58,
+   "ssim": 0.9325,
+   "bytes": 229922
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 8106.6,
+   "psnr": 35.5,
+   "ssim": 0.9311,
+   "bytes": 222042
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 10384.3,
+   "psnr": 34.94,
+   "ssim": 0.9228,
+   "bytes": 173338
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 12651.6,
+   "psnr": 34.02,
+   "ssim": 0.9109,
+   "bytes": 142274
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 12761.4,
+   "psnr": 34.62,
+   "ssim": 0.9225,
+   "bytes": 141050
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 14165.9,
+   "psnr": 34.24,
+   "ssim": 0.9205,
+   "bytes": 127066
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 20607.7,
+   "psnr": 33.06,
+   "ssim": 0.9019,
+   "bytes": 87346
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 21358.9,
+   "psnr": 33.01,
+   "ssim": 0.9009,
+   "bytes": 84274
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 27421.5,
+   "psnr": 32.57,
+   "ssim": 0.8991,
+   "bytes": 65642
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 27468.3,
+   "psnr": 32.57,
+   "ssim": 0.8991,
+   "bytes": 65530
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 38512.6,
+   "psnr": 31.22,
+   "ssim": 0.876,
+   "bytes": 46738
+  },
+  {
+   "compressor": "TTHRESH",
+   "ratio": 53301.8,
+   "psnr": 30.75,
+   "ssim": 0.8694,
+   "bytes": 33770
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 1050.0,
+   "psnr": 30.21,
+   "ssim": 0.8648,
+   "bytes": 1714307
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 1107.2,
+   "psnr": 37.42,
+   "ssim": 0.9624,
+   "bytes": 1625793
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 1610.8,
+   "psnr": 38.0,
+   "ssim": 0.9625,
+   "bytes": 1117428
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 2263.4,
+   "psnr": 32.59,
+   "ssim": 0.9259,
+   "bytes": 795247
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 8615.1,
+   "psnr": 35.65,
+   "ssim": 0.956,
+   "bytes": 208936
+  },
+  {
+   "compressor": "fVSRKAN",
+   "ratio": 9242.6,
+   "psnr": 35.37,
+   "ssim": 0.9508,
+   "bytes": 194750
+  },
+  {
+   "compressor": "fVSRN",
+   "ratio": 15057.8,
+   "psnr": 34.77,
+   "ssim": 0.9545,
+   "bytes": 119539
+  }
+ ]
+}

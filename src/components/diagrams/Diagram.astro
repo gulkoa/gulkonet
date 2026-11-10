@@ -1,5 +1,7 @@
 ---
-// Shared frame for the hand-drawn SVG diagrams: sizing, arrowheads, caption and the `dg-*` classes.
+// Shared frame for the hand-drawn SVG diagrams: sizing, arrowheads and caption. The `dg-*` classes live in diagram.css.
+import "./diagram.css";
+
 // Usage: <Diagram viewBox="0 0 1000 400" label="what the picture shows" caption="..."> ...svg shapes... </Diagram>
 interface Props {
   viewBox: string;
@@ -35,79 +37,3 @@ const { viewBox, label, caption, minWidth = 680, maxWidth } = Astro.props;
   {caption && <figcaption>{caption}</figcaption>}
   {Astro.slots.has("caption") && <figcaption><slot name="caption" /></figcaption>}
 </figure>
-
-<style is:global>
-  .diagram {
-    --dg-ink: #1d1d1f;
-    --dg-muted: #5b5f66;
-    --dg-hairline: #cfd3da;
-    --dg-soft: #f4f6fa;
-    --dg-accent: var(--active-color);
-    --dg-accent-soft: #e6edfb;
-
-    margin: 2.5rem 0;
-  }
-  .diagram-scroll {
-    overflow-x: auto;
-  }
-  .diagram svg {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin: 0 auto;
-    color: var(--dg-ink);
-    font-family: var(--general-font);
-  }
-  .diagram figcaption {
-    margin: 0.9rem auto 0 auto;
-    max-width: 75ch;
-    text-align: center;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: var(--dg-muted);
-  }
-
-  /* boxes */
-  .diagram .dg-box { fill: white; stroke: var(--dg-ink); stroke-width: 1.5; }
-  .diagram .dg-soft { fill: var(--dg-soft); stroke: var(--dg-hairline); stroke-width: 1.5; }
-  .diagram .dg-accent { fill: var(--dg-accent-soft); stroke: var(--dg-accent); stroke-width: 1.5; }
-  .diagram .dg-solid { fill: var(--dg-accent); stroke: var(--dg-accent); stroke-width: 1.5; }
-
-  /* text: centered on its x/y unless .dg-start */
-  .diagram text {
-    fill: var(--dg-ink);
-    font-size: 14px;
-    text-anchor: middle;
-    dominant-baseline: central;
-  }
-  .diagram .dg-start { text-anchor: start; }
-  .diagram .dg-end { text-anchor: end; }
-  .diagram .dg-title { font-size: 15px; font-weight: 700; }
-  .diagram .dg-sub { font-size: 12.5px; fill: var(--dg-muted); font-weight: 400; }
-  .diagram .dg-mono { font-family: var(--mono-font); font-size: 12.5px; }
-  .diagram .dg-math { font-family: var(--serif-font); font-style: italic; font-size: 18px; }
-  .diagram .dg-on-solid { fill: white; }
-
-  /* lines and arrows */
-  .diagram .dg-line { fill: none; stroke: var(--dg-ink); stroke-width: 1.5; }
-  .diagram .dg-line-muted { fill: none; stroke: var(--dg-muted); stroke-width: 1.25; }
-  .diagram .dg-arrowhead { fill: var(--dg-ink); }
-  .diagram .dg-arrowhead-muted { fill: var(--dg-muted); }
-  .diagram .dg-dot { fill: var(--dg-ink); }
-
-  /* data on the move: marching dashes */
-  .diagram .dg-flow {
-    stroke-dasharray: 5 5;
-    animation: dg-flow 1.5s linear infinite;
-  }
-  @keyframes dg-flow {
-    to { stroke-dashoffset: -10; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .diagram .dg-flow {
-      animation: none;
-      stroke-dasharray: none;
-    }
-  }
-</style>

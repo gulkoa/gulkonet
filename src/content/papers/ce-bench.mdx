@@ -5,6 +5,7 @@ note: "* equal contribution"
 venue: "BlackboxNLP Workshop, EMNLP 2025"
 date: "2025-11-09"
 description: "Grading how interpretable a sparse autoencoder is with pairs of contrasting stories. No LLM judge needed."
+image: "papers/ce-bench.png"
 links:
   - label: "Paper"
     href: "https://aclanthology.org/2025.blackboxnlp-1.1/"
@@ -30,12 +31,12 @@ Sparse autoencoders (SAEs) take the messy activations inside an LLM and split th
 
 ## Idea
 
-If a feature really means something, it should react when the meaning changes. So we built a dataset of *contrastive stories*: for each of 1,000 subjects, short stories about the same subject that take opposite sides. In one story the narrator sneaks into an art gala and breaks every rule. In the other, they show up on time and follow every single one.
+If a feature really means something, it should react when the meaning changes. So we built a dataset of *contrastive stories*: 5,000 pairs of short stories about 1,000 subjects picked from WikiData. Each pair tells the same subject twice, once at its extreme and once as its opposite. For "computer", one story follows a machine that cracks cryptography and maps the global weather at the same time. The other is about the "Null Device", which cannot add two numbers.
 
 ## How it works
 
 <CEBenchPipeline>
-  <span slot="caption">Two stories about the same subject run through a frozen LLM and the SAE we want to grade. The highlighted feature fires on the first story and stays quiet on the second, which is exactly what the contrastive score looks for. The independence score compares the pair's combined activations (I) with the average over the whole dataset.</span>
+  <span slot="caption">Two stories about the same subject run through a frozen LLM and the SAE we want to grade. The highlighted feature fires on the first story and stays quiet on the second, which is exactly what the contrastive score looks for. The independence score compares the pair's summed activations (I) with their average over the whole dataset.</span>
 </CEBenchPipeline>
 
 We average how much each SAE feature fires on each story and compute two scores.
@@ -44,7 +45,7 @@ The **contrastive score** is the biggest gap between the two stories. Is there a
 
 The **independence score** is the biggest gap between this pair and the average over the whole dataset. Is there a feature that cares about this subject in particular?
 
-Together with how sparse the SAE is, these give one interpretability score. No prompts and no judge, just arithmetic on activations.
+Add the two up, subtract a small penalty based on the SAE's sparsity, and you have one interpretability score. No prompts and no judge, just arithmetic on activations.
 
 ## Results
 
@@ -54,7 +55,9 @@ Together with how sparse the SAE is, these give one interpretability score. No p
   { value: "0", label: "judge LLMs involved" },
 ]} />
 
-We also used CE-Bench to compare SAE architectures, widths, layer types, and layer depths. The paper has the full breakdown.
+Those numbers come from 48 pretrained SAEs that SAEBench had already graded. We also used CE-Bench to compare SAEs with each other: top-k and p-anneal architectures came out as the most interpretable, wider SAEs beat narrower ones, and the middle layers of the LLM gave the clearest features.
+
+One catch: the stories themselves were written by GPT-4.1, so the benchmark may favor models that are at home in GPT-style text.
 
 ## See more
 

@@ -1,0 +1,70 @@
+---
+import Diagram from "./Diagram.astro";
+
+// the same tiny 2-2-1 network, drawn twice
+const inputs = [{ x: 120, y: 100 }, { x: 120, y: 200 }];
+const hidden = [{ x: 290, y: 100 }, { x: 290, y: 200 }];
+const output = { x: 420, y: 150 };
+
+// where each connection carries its label: [from, to, how far along the line]
+const edges = [
+  { a: inputs[0], b: hidden[0], t: 0.5, weight: "0.8", curve: "M-11,5 C-3,5 -1,-6 11,-5" },
+  { a: inputs[0], b: hidden[1], t: 0.3, weight: "−1.2", curve: "M-11,-5 Q0,10 11,-5" },
+  { a: inputs[1], b: hidden[0], t: 0.3, weight: "0.3", curve: "M-11,0 C-7,-9 -3,9 0,0 S7,-9 11,0" },
+  { a: inputs[1], b: hidden[1], t: 0.5, weight: "2.1", curve: "M-11,4 C-2,4 1,3 11,-5" },
+  { a: hidden[0], b: output, t: 0.5, weight: "−0.5", curve: "M-11,-4 C-5,7 3,-9 11,4" },
+  { a: hidden[1], b: output, t: 0.5, weight: "1.4", curve: "M-11,5 Q0,-10 11,5" },
+].map((e) => ({ ...e, x: e.a.x + (e.b.x - e.a.x) * e.t, y: e.a.y + (e.b.y - e.a.y) * e.t }));
+
+const activation = "M-8,4 C-2,4 0,-5 8,-5"; // the one fixed activation an MLP reuses
+const panels = [{ dx: 0, kan: false }, { dx: 500, kan: true }];
+---
+
+<Diagram
+  viewBox="0 30 1000 208"
+  label="The same small network drawn as an MLP and as a KAN. In the MLP every connection carries a single learned number and every node applies the same fixed activation function. In the KAN every connection carries its own learned curve and the nodes only add their inputs."
+>
+  {panels.map(({ dx, kan }) => (
+    <g transform={`translate(${dx} 0)`}>
+      <text x="40" y="52" class="dg-title dg-start">{kan ? "KAN" : "MLP"}</text>
+      <text x={kan ? 84 : 82} y="52" class="dg-sub dg-start">{kan ? "a learned curve on every connection, nodes only add" : "a learned number on every connection, one fixed activation"}</text>
+
+      {edges.map((e) => <line x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} class="dg-line"></line>)}
+
+      {inputs.map((n, i) => (
+        <g>
+          <circle cx={n.x} cy={n.y} r="17" class="dg-soft"></circle>
+          <text x={n.x} y={n.y} class="dg-math" font-size="16">{i === 0 ? "x" : "y"}</text>
+        </g>
+      ))}
+      {[...hidden, output].map((n) => (
+        <g>
+          <circle cx={n.x} cy={n.y} r="17" class="dg-box"></circle>
+          {kan
+            ? <text x={n.x} y={n.y} font-size="18">+</text>
+            : <path d={activation} transform={`translate(${n.x} ${n.y})`} class="dg-line"></path>}
+        </g>
+      ))}
+
+      {edges.map((e) => kan
+        ? (
+          <g transform={`translate(${e.x} ${e.y})`}>
+            <rect x="-17" y="-12" width="34" height="24" rx="6" class="dg-accent"></rect>
+            <path d={e.curve} class="mk-curve"></path>
+          </g>
+        )
+        : (
+          <g transform={`translate(${e.x} ${e.y})`}>
+            <rect x="-19" y="-11" width="38" height="22" rx="6" class="dg-accent"></rect>
+            <text x="0" y="0" class="dg-mono" font-size="12">{e.weight}</text>
+          </g>
+        ))}
+    </g>
+  ))}
+  <line x1="500" y1="44" x2="500" y2="226" class="mk-divider"></line>
+</Diagram>
+
+<style is:global>
+  .diagram .mk-curve { fill: none; stroke: var(--dg-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .diagram .mk-divider { stroke: var(--dg-hairline); stroke-width: 1; }
+</style>
