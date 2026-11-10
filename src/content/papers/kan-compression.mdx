@@ -1,6 +1,9 @@
 ---
-title: "Kolmogorov-Arnold Networks for Lossy Compression of Scientific Data"
-authors: ["Alex Gulko"]
+title: "qKAN Lossy Compression"
+authors:
+  - "Alex Gulko"
+  - name: "Hanqi Guo"
+    url: "https://hguo.github.io/"
 venue: "Unpublished research project, The Ohio State University, 2024-2025"
 date: "2025-03-17"
 description: "Can a KAN replace the MLP inside a neural compressor? I tried it on a 1.8 GB hurricane simulation. It works, but SIREN still wins."
@@ -16,7 +19,7 @@ import KanRateDistortion from '../../components/diagrams/KanRateDistortion.astro
 
 ## TL;DR
 
-Kolmogorov-Arnold Networks (KANs) showed up in 2024 as a possible replacement for the MLP. Between 2024 and early 2025 I tested whether they make better **neural compressors** for scientific data. The short answer: a KAN can shrink a 1.8 GB hurricane simulation **8,600 times** and keep up with a classic compressor, but a plain SIREN still beats it. This work is unpublished, so this page is the write-up.
+Kolmogorov-Arnold Networks (KANs) showed up in 2024 as a possible replacement for the MLP. Together with [Hanqi Guo](https://hguo.github.io/) at Ohio State, I spent 2024 and early 2025 testing whether they make better **neural compressors** for scientific data. The short answer: a KAN can shrink a 1.8 GB hurricane simulation **8,600 times** and keep up with a classic compressor, but a plain SIREN still beats it. This work is unpublished, so this page is the write-up.
 
 ## Neural compression in one paragraph
 

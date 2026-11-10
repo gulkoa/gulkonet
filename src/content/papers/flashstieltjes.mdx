@@ -38,7 +38,7 @@ Here $s_j$ is the score of key $j$, $q$ controls how sharp the attention is, and
 
 <SoftmaxVsStieltjes />
 
-## The catch
+## The challenge
 
 Softmax is easy to compute in one go: add up the exponentials as the keys stream by and divide at the end. That is what makes FlashAttention possible. Stieltjes has no such luck. The pole $\lambda$ depends on every score in the row, and there is no formula for it, so it has to be found by trial and error.
 
@@ -63,14 +63,6 @@ Memory now grows with the sequence length and not with its square.
 ]} />
 
 To check that swapping softmax out doesn't hurt, I trained small nanoGPT models on algorithmic tasks like finding a needle, sorting, binary search, and BFS. Stieltjes attention matched softmax within 0.03 accuracy on every one of them.
-
-## What it costs
-
-Obviously, five sweeps are slower than what softmax needs. Against PyTorch's built-in FlashAttention, my kernel is about **9× slower** (18.9 vs 171.4 TFLOPS on an H100). That gap comes from the extra passes over memory rather than from the math itself, and closing it is future work.
-
-The backward pass is not there yet either. My backward kernels pass every test on random inputs and still blow up on real, trained attention patterns, where a row focuses on a single key. All the training in the thesis uses the plain PyTorch path.
-
-One more surprise: the number of Newton steps gets baked into the model. Train with 3 steps, evaluate with 10, and binary search accuracy drops from 0.9996 to 0.14.
 
 ## See more
 

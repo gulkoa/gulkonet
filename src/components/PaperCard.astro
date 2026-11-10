@@ -9,7 +9,7 @@ interface PaperLink {
 
 interface Props {
   title: string;
-  authors: string[];
+  authors: (string | { name: string; url: string })[];
   note?: string;
   venue: string;
   description: string;

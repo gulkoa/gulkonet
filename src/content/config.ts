@@ -40,7 +40,8 @@ const papersCollection = defineCollection({
   type: 'content',
   schema: z.object({
     title: z.string(),
-    authors: z.array(z.string()).min(1), // a trailing * marks equal contribution
+    // a name, or a name with a link to that person's website; a trailing * marks equal contribution
+    authors: z.array(z.union([z.string(), z.object({ name: z.string(), url: z.string() })])).min(1),
     note: z.string().optional(), // shown after the authors, e.g. the advisor of a thesis
     venue: z.string(),
     date: z.string(), // publication date, used for sorting

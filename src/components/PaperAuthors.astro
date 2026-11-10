@@ -1,10 +1,13 @@
 ---
+type Author = string | { name: string; url: string };
+
 interface Props {
-  authors: string[];
+  authors: Author[];
   note?: string;
 }
 
-const { authors, note } = Astro.props;
+const { note } = Astro.props;
+const authors = Astro.props.authors.map((author) => (typeof author === "string" ? { name: author, url: undefined } : author));
 
 // the site owner is highlighted in the author list (a trailing * marks equal contribution)
 const me = "Alex Gulko";
@@ -13,7 +16,7 @@ const isMe = (author: string) => author.replace(/\*$/, "") === me;
 
 <p class="paper-authors">
   {authors.map((author, i) => (
-    <Fragment>{isMe(author) ? <strong>{author}</strong> : author}{i < authors.length - 1 ? ", " : ""}</Fragment>
+    <Fragment>{isMe(author.name) ? <strong>{author.name}</strong> : author.url ? <a href={author.url}>{author.name}</a> : author.name}{i < authors.length - 1 ? ", " : ""}</Fragment>
   ))}
   {note && <span class="paper-note"> · {note}</span>}
 </p>
