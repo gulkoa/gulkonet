@@ -1,0 +1,117 @@
+---
+import { FileText, Github } from "lucide-astro";
+
+interface PaperLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  authors: string[];
+  note?: string;
+  venue: string;
+  description: string;
+  links: PaperLink[];
+}
+
+const { title, authors, note, venue, description, links } = Astro.props;
+
+// the site owner is highlighted in the author list
+const me = "Alex Gulko";
+
+const isRepo = (href: string) => /^https?:\/\/(www\.)?github\.com\//.test(href);
+---
+
+<article class="paper">
+  <p class="paper-venue">{venue}</p>
+  <h3 class="paper-title"><a href={links[0].href}>{title}</a></h3>
+  <p class="paper-authors">
+    {authors.map((author, i) => (
+      <Fragment>{author === me ? <strong>{author}</strong> : author}{i < authors.length - 1 ? ", " : ""}</Fragment>
+    ))}
+    {note && <span class="paper-note"> · {note}</span>}
+  </p>
+  <p class="paper-description">{description}</p>
+  <div class="paper-links" data-pagefind-ignore>
+    {links.map((link) => (
+      <a class="paper-link" href={link.href}>
+        {isRepo(link.href) ? <Github size="18" /> : <FileText size="18" />}
+        {link.label}
+      </a>
+    ))}
+  </div>
+</article>
+
+<style scoped>
+  .paper {
+    border: rgb(230, 230, 230) 1px solid;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+  }
+
+  .paper p {
+    margin: 0;
+  }
+
+  .paper-venue {
+    font-family: var(--mono-font);
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .paper-title {
+    font-size: 1.4rem;
+    line-height: 1.3;
+    margin: 0.4rem 0 0.5rem 0;
+  }
+  .paper-title a {
+    color: inherit;
+    transition: color 0.2s ease-in-out;
+  }
+  .paper-title a:hover {
+    color: var(--active-color);
+  }
+
+  .paper-authors {
+    font-size: 1.1rem;
+  }
+  .paper-authors strong {
+    font-weight: 700;
+  }
+  .paper-note {
+    color: #555;
+  }
+
+  .paper p.paper-description {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0.5rem 0 0.9rem 0;
+  }
+
+  .paper-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .paper-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    border: 2px solid var(--active-color);
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--active-color);
+    background-color: white;
+    transition: all 0.2s ease-in-out;
+  }
+  .paper-link:hover {
+    color: white;
+    background-color: var(--active-color);
+  }
+  .paper-link:active {
+    box-shadow: var(--active-color-transparent) 0px 0px 0px 0.3rem;
+  }
+</style>

@@ -1,0 +1,12 @@
+title: "CE-Bench: Towards a Reliable Contrastive Evaluation Benchmark of Interpretability of Sparse Autoencoders"
+authors: ["Alex Gulko", "Yusen Peng", "Sachin Kumar"]
+venue: "BlackboxNLP Workshop, EMNLP 2025"
+date: "2025-11-09"
+description: "A lightweight contrastive benchmark for measuring how interpretable sparse autoencoders are. It scores an SAE on a curated dataset of contrastive story pairs, needs no external LLM judge, and aligns well with existing benchmarks."
+links:
+  - label: "Paper"
+    href: "https://aclanthology.org/2025.blackboxnlp-1.1/"
+  - label: "arXiv"
+    href: "https://arxiv.org/abs/2509.00691"
+  - label: "Code"
+    href: "https://github.com/Yusen-Peng/CE-Bench"

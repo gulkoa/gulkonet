@@ -34,7 +34,22 @@ const blogCollection = defineCollection({
   }),
 });
 
+// one YAML file per paper in src/content/papers; listed on the home page, newest first
+const papersCollection = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title: z.string(),
+    authors: z.array(z.string()).min(1),
+    note: z.string().optional(), // shown after the authors, e.g. the advisor of a thesis
+    venue: z.string(),
+    date: z.string(), // publication date, only used for sorting
+    description: z.string(),
+    links: z.array(z.object({ label: z.string(), href: z.string() })).min(1), // the first one is also the title link
+  }),
+});
+
 export const collections = {
   'projects': projectsCollection,
-  'blog': blogCollection
+  'blog': blogCollection,
+  'papers': papersCollection
 };

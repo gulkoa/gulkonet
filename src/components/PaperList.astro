@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+
+import PaperCard from "./PaperCard.astro";
+
+// newest first
+const papers = (await getCollection('papers')).sort((a, b) => {
+  return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+});
+---
+
+<div class="papers">
+  {papers.map((paper) => (
+    <PaperCard
+      title={paper.data.title}
+      authors={paper.data.authors}
+      note={paper.data.note}
+      venue={paper.data.venue}
+      description={paper.data.description}
+      links={paper.data.links}
+    />
+  ))}
+</div>
+
+<style>
+  .papers {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+</style>
