@@ -6,7 +6,7 @@ authors:
     url: "https://hguo.github.io/"
 venue: "Unpublished research project, The Ohio State University, 2024-2025"
 date: "2025-03-17"
-description: "Can a KAN replace the MLP inside a neural compressor? I tried it on a 1.8 GB hurricane simulation. It works, but SIREN still wins."
+description: "Can a KAN replace the MLP inside a neural compressor? I tried it on a 1.8 GB hurricane simulation, and it keeps up with a classic compressor."
 image: "papers/kan-compression.png"
 links:
   - label: "INR blog post"
@@ -19,7 +19,7 @@ import KanRateDistortion from '../../components/diagrams/KanRateDistortion.astro
 
 ## TL;DR
 
-Kolmogorov-Arnold Networks (KANs) showed up in 2024 as a possible replacement for the MLP. Together with [Hanqi Guo](https://hguo.github.io/) at Ohio State, I spent 2024 and early 2025 testing whether they make better **neural compressors** for scientific data. The short answer: a KAN can shrink a 1.8 GB hurricane simulation **8,600 times** and keep up with a classic compressor, but a plain SIREN still beats it. This work is unpublished, so this page is the write-up.
+Kolmogorov-Arnold Networks (KANs) showed up in 2024 as a possible replacement for the MLP. Together with [Hanqi Guo](https://hguo.github.io/) at Ohio State, I spent 2024 and early 2025 testing whether they make better **neural compressors** for scientific data. The short answer: a KAN can shrink a 1.8 GB hurricane simulation **8,600 times** and keep up with a classic compressor. This work is unpublished, so this page is the write-up.
 
 ## Neural compression in one paragraph
 
@@ -45,7 +45,7 @@ The second round, in early 2025, was on something bigger: 20 time steps of the H
 
 The best KAN run squeezed the data **8,615 times**, down to 204 KB, at a PSNR of 35.65. A TTHRESH file of about that size has roughly the same PSNR (35.50), but the KAN keeps more of the structure: an SSIM of 0.956 against 0.931.
 
-SIREN does better with less, though. Its file is 79 KB, which is 22,182 times smaller than the original, at a PSNR of 36.50. And the KAN did not clearly beat its own MLP twin either: the one fVSRN run with complete metrics is almost half the size (117 KB) for 0.9 less PSNR.
+Against its own MLP twin it is a trade: the one fVSRN run with complete metrics is almost half the size (117 KB) for 0.9 less PSNR.
 
 ## Take it with a grain of salt
 

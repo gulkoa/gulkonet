@@ -37,8 +37,9 @@ const { items } = Astro.props;
     padding: 1rem 1.25rem;
   }
   .stat-value {
+    font-family: var(--mono-font);
     font-size: 2.6rem;
-    font-weight: 600;
+    font-weight: 400; /* only the regular weight of the mono font is loaded */
     line-height: 1.1;
   }
   .stat-label {

@@ -41,7 +41,7 @@ const tableRows = [siren, fvsrn, ...kan.slice().reverse(), ...of("TTHRESH").filt
 <figure class="diagram wchart rdchart" data-points={JSON.stringify(points)} data-width={W}>
   <div class="diagram-scroll">
     <div class="wchart-frame">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Reconstruction quality against compression ratio for four compressors on the Hurricane Isabel dataset. The best KAN run reaches PSNR ${kanBest.psnr} at ${times(kanBest.ratio)}, on TTHRESH's curve. SIREN is both smaller and better at PSNR ${siren.psnr} and ${times(siren.ratio)}.`} xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Reconstruction quality against compression ratio for four compressors on the Hurricane Isabel dataset. The best KAN run reaches PSNR ${kanBest.psnr} at ${times(kanBest.ratio)}, on TTHRESH's curve. The single SIREN run is at PSNR ${siren.psnr} and ${times(siren.ratio)}, the single fVSRN run at PSNR ${fvsrn.psnr} and ${times(fvsrn.ratio)}.`} xmlns="http://www.w3.org/2000/svg">
         <!-- grid and axes -->
         {yTicks.map((p) => (
           <g>
@@ -96,7 +96,7 @@ const tableRows = [siren, fvsrn, ...kan.slice().reverse(), ...of("TTHRESH").filt
     </div>
   </div>
   <figcaption>
-    Every run that got past 1,000× and a PSNR of 30 on 20 time steps of Hurricane Isabel (1.8 GB). The best KAN run lands right on TTHRESH's curve, and SIREN beats both with a smaller file and better quality.
+    Every run that got past 1,000× and a PSNR of 30 on 20 time steps of Hurricane Isabel (1.8 GB). The best KAN run lands right on TTHRESH's curve.
   </figcaption>
   <details class="wchart-table">
     <summary>Data table</summary>
